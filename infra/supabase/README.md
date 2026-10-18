@@ -1,6 +1,6 @@
 # Supabase local
 
-Entorno de desarrollo de Focal Drop para la issue #8 (D90, D94, D101 y D116). Cada desarrollador
+Entorno de desarrollo de Focal Drop para la issue #8 (D60, D90, D94, D101, D116 y D121). Cada desarrollador
 tiene su propia base de datos y sus propias credenciales locales. El proyecto de staging corresponde
 a la #30; estos pasos no requieren iniciar sesión, enlazar un proyecto ni acceder a staging.
 
@@ -48,51 +48,61 @@ versionada en esta carpeta. La primera ejecución tarda más por la descarga de 
 Los puertos deben estar libres. Si otro proyecto local de Supabase los está usando, detén ese
 proyecto antes de arrancar este. El identificador de los contenedores y volúmenes es `focaldrop-local`.
 
-## Credenciales en `.env.local`
+## Credenciales en `infra/supabase/.env.local`
 
-Después del arranque, exporta las variables de la CLI al archivo **`.env.local` de la raíz**.
+Después del arranque, exporta las variables de la CLI a **`infra/supabase/.env.local`**.
 La salida contiene credenciales: guárdala en ese archivo, que Git ignora, y conserva únicamente
-valores de ejemplo en `.env.example`.
+valores de ejemplo en `infra/supabase/.env.example`. Ejecuta los comandos desde la raíz del repositorio.
 
 En **PowerShell 5.1 o 7**:
 
 ```powershell
-if (Test-Path -LiteralPath .env.local) {
-    throw '.env.local ya existe; conserva su contenido y actualiza solo las variables necesarias.'
+$localEnvPath = Join-Path (Get-Location) 'infra/supabase/.env.local'
+if (Test-Path -LiteralPath $localEnvPath) {
+    throw 'infra/supabase/.env.local ya existe; conserva su contenido y actualiza solo las variables necesarias.'
 }
 
 $localEnv = pnpm exec supabase status --workdir infra --output env
 if ($LASTEXITCODE -ne 0) {
     throw 'No se pudo consultar Supabase. Comprueba pnpm db:start antes de crear .env.local.'
 }
-$localEnv | Set-Content -LiteralPath .env.local -Encoding utf8
+[System.IO.File]::WriteAllLines($localEnvPath, [string[]]$localEnv)
 Remove-Variable localEnv
 ```
 
-Se especifica UTF-8 porque la redirección `>` de Windows PowerShell 5.1 guarda texto como UTF-16.
+`WriteAllLines` escribe UTF-8 sin BOM tanto en PowerShell 5.1 como en 7. En 5.1, `>` escribe
+UTF-16 y `Set-Content -Encoding utf8` añade un BOM que impide que Node reconozca la primera variable.
 
 En **Bash** (Linux, macOS o WSL):
 
 ```sh
 local_env="$(pnpm exec supabase status --workdir infra --output env)" &&
-  (set -C; printf '%s\n' "$local_env" > .env.local)
+  (set -C; printf '%s\n' "$local_env" > infra/supabase/.env.local)
 unset local_env
 ```
 
-`set -C` impide sobrescribir un archivo existente. Si ya tienes `.env.local`, combina las variables
-necesarias conservando las demás. Estas variables describen la pila local; la configuración de cada
-app se incorporará con sus respectivas issues. Las credenciales de staging siguen en Bitwarden.
+`set -C` impide sobrescribir un archivo existente. Si ya tienes `infra/supabase/.env.local`, combina
+las variables necesarias conservando las demás. Si guardaste antes las credenciales de Supabase en
+`.env.local` de la raíz, conserva ese archivo y traslada solo las variables de la CLI a esta carpeta.
+
+Estas variables describen la pila local, no la configuración de una app: `API_URL` apunta al gateway
+de Supabase, no a Nest. Cada app tendrá su propio archivo de entorno con sus respectivas issues.
+Las llaves heredadas de la CLI (`ANON_KEY`, `SERVICE_ROLE_KEY` y `JWT_SECRET`) son solo locales;
+no se deben copiar a staging, que usa su propia configuración (D121). Sus credenciales siguen en Bitwarden.
 
 ## Configuración del proyecto
 
 - `db.major_version = 17`: misma versión mayor que CI y staging.
 - `auth.enable_signup = false`: registro público deshabilitado (D94).
-- `auth.email.enable_signup = false` y `auth.sms.enable_signup = false`: tampoco se permite
-  registrar usuarios por correo o SMS. Los usuarios del MVP se aprovisionarán por script.
+- `auth.email.enable_signup = true`: habilita el proveedor de correo para que los usuarios
+  aprovisionados puedan iniciar sesión con contraseña. El registro público sigue cerrado por
+  `auth.enable_signup = false`; `auth.sms.enable_signup = false` mantiene apagado el proveedor SMS.
 - `auth.enable_anonymous_sign_ins = false`: sin acceso anónimo de Auth.
 - `auth.email.enable_confirmations = false`: sin confirmaciones de correo en local.
-- `api.auto_expose_new_tables = false`: las tablas nuevas no reciben permisos automáticos para
-  la Data API. Los permisos y RLS de capa 0 se implementan en la #11 (D60).
+- `api.enabled = false`: Data API deshabilitada, igual que en staging (D121). `/rest/v1/`
+  devuelve 503; Auth y Studio siguen funcionando. Solo Nest accederá a los datos de negocio.
+- `api.auto_expose_new_tables = false`: las tablas nuevas tampoco reciben permisos automáticos.
+  Los permisos y RLS de capa 0 se implementan en la #11 (D60).
 - Las migraciones de aplicación se incorporarán en `apps/api/drizzle/` con la #11. La ejecución
   de migraciones y seeds de Supabase está deshabilitada; el seed de la agencia demo es la #15.
 - Storage, Realtime, Edge Functions y Analytics están deshabilitados: esta configuración cubre
@@ -118,7 +128,12 @@ Fabian y Rubén deben completar esta lista en sus propios equipos antes de cerra
 - [ ] Instalar con `pnpm install --frozen-lockfile` y comprobar la versión de la CLI.
 - [ ] Ejecutar `pnpm db:start` sin errores de salud de los contenedores.
 - [ ] Abrir Studio y Mailpit en las direcciones de la tabla.
-- [ ] Guardar las credenciales propias en `.env.local` y confirmar que `git status` no las muestra.
+- [ ] Guardar las credenciales propias en `infra/supabase/.env.local` y confirmar que
+      `git check-ignore infra/supabase/.env.local` reconoce la ruta y `git status` no la muestra.
+- [ ] Comprobar que `http://127.0.0.1:54321/rest/v1/` responde 503 con Data API deshabilitada.
+- [ ] Comprobar en `http://127.0.0.1:54321/auth/v1/settings`, con la llave pública local en
+      el header `apikey`, que `disable_signup` es `true`, `external.email` es `true` y
+      `external.anonymous_users` es `false`.
 - [ ] Comprobar Postgres y la disponibilidad de `pg_cron` y `pg_net` en el editor SQL de Studio:
 
   ```sql
@@ -145,8 +160,15 @@ Fabian y Rubén deben completar esta lista en sus propios equipos antes de cerra
   drop schema focaldrop_local_check;
   ```
 
-Esta prueba no crea usuarios ni tablas de negocio. Las pruebas de login con el owner se incorporan
-cuando existan su aprovisionamiento y el seed.
+Para comprobar el login antes del seed, crea un usuario sintético con la API de administración de
+Supabase local (`POST /auth/v1/admin/users`, con `email_confirm: true`), usando la llave de servicio
+local en `apikey` y `Authorization: Bearer`. Inicia sesión con ese correo y contraseña en
+`POST /auth/v1/token?grant_type=password`, con la llave pública local en `apikey`: debe responder 200. `POST /auth/v1/signup` debe seguir rechazando el registro con `signup_disabled`, y el acceso
+anónimo debe fallar con `anonymous_provider_disabled`. Retira el usuario de prueba con
+`DELETE /auth/v1/admin/users/{id}` al terminar; no publiques llaves, contraseñas ni tokens.
+
+Esta comprobación solo usa datos sintéticos y no crea tablas de negocio. El owner de la agencia demo
+y su aprovisionamiento pertenecen al seed de la #15.
 
 ## Referencias
 

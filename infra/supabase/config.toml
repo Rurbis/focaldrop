@@ -3,7 +3,8 @@
 project_id = "focaldrop-local"
 
 [api]
-enabled = true
+# Match staging: business data is only available through Nest (D60, D121).
+enabled = false
 port = 54321
 schemas = ["public"]
 extra_search_path = ["public", "extensions"]
@@ -52,7 +53,8 @@ enable_signup = false
 enable_anonymous_sign_ins = false
 
 [auth.email]
-enable_signup = false
+# Enable email/password sign-in; auth.enable_signup still blocks public signup.
+enable_signup = true
 # Local development does not require email confirmation.
 enable_confirmations = false
 
