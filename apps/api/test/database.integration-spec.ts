@@ -126,11 +126,16 @@ describe('platform migrations on a fresh PostgreSQL database', () => {
 
   it('grants app_api CRUD through layer-0 policies without superuser or RLS bypass', async () => {
     const [role] = await fixture.client<
-      { rolsuper: boolean; rolbypassrls: boolean; rolcreaterole: boolean }[]
+      { rolsuper: boolean; rolbypassrls: boolean; rolcreaterole: boolean; rolcanlogin: boolean }[]
     >`
-      SELECT rolsuper, rolbypassrls, rolcreaterole FROM pg_roles WHERE rolname = 'app_api'
+      SELECT rolsuper, rolbypassrls, rolcreaterole, rolcanlogin FROM pg_roles WHERE rolname = 'app_api'
     `;
-    expect(role).toEqual({ rolsuper: false, rolbypassrls: false, rolcreaterole: false });
+    expect(role).toEqual({
+      rolsuper: false,
+      rolbypassrls: false,
+      rolcreaterole: false,
+      rolcanlogin: true,
+    });
     const id = uuidv7();
     await fixture.client.begin(async (tx) => {
       await tx.unsafe('SET LOCAL ROLE app_api');
