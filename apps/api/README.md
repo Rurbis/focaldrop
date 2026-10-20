@@ -95,7 +95,7 @@ Supabase owns `auth.users`, `anon` and `authenticated`; migrations do not recrea
 them. Every platform table has RLS enabled, no grants to `PUBLIC`, `anon` or
 `authenticated`, and a CRUD policy for `app_api`. The runtime role has no superuser,
 role-creation or RLS-bypass privileges. Its password is deliberately absent from
-migrations: the local seed (#15) configures a Docker-only password; staging must
+migrations: the local seed configures a Docker-only password; staging must
 provision its own password outside Git. Layer 0 deliberately allows `app_api`
 across agencies; guards/repositories implement layer 1 (#12–#14).
 
@@ -113,6 +113,55 @@ pnpm --filter @focaldrop/api test:integration
 `createDatabase()` uses `prepare: false` for Supabase's transaction pooler. It
 returns a typed Drizzle database and the underlying client, which consumers must
 close on shutdown. The health endpoint remains independent of database access.
+
+## Local demo (issue #15)
+
+With Docker and Supabase running, first generate `infra/supabase/.env.local` as
+described in the [local guide](../../infra/supabase/README.md). Copy the API env
+example if absent, then use the root commands:
+
+```sh
+pnpm db:migrate
+pnpm db:seed
+```
+
+| Item                       | Synthetic local value             |
+| -------------------------- | --------------------------------- |
+| Agency / hostname          | `demo` / `localhost`              |
+| Owner email                | `owner@focaldrop.test`            |
+| Owner password             | `Focaldrop-local-only-2026!`      |
+| Runtime DB role / password | `app_api` / `focaldrop_local_api` |
+
+The seed creates the owner through the **Auth administration API**, confirms the
+email, and creates the profile and owner membership. It never inserts passwords
+into `auth.users` or uses the disabled Data API. IDs remain stable on reruns;
+local edits to the demo agency are preserved. `localhost` belonging to another
+agency, or the demo email belonging to an unmarked Auth account, stops the seed
+instead of taking them over. A transaction/advisory lock prevents concurrent
+seeds from duplicating data. The profile is not a platform administrator.
+
+`NODE_ENV=development` is required. Seed/reset accepts only loopback Supabase
+on ports 54321/54322 and the `postgres` database. Remote URLs, alternate databases,
+query-string connection overrides and a non-administrator migration connection
+are rejected before connecting. Admin keys come from the ignored CLI env file
+(or `SUPABASE_SECRET_KEY`); keys and tokens are never logged. These credentials
+must never be reused in staging or production.
+
+```sh
+pnpm db:reset
+```
+
+**Reset deletes all data in this project's local Supabase, including Auth users.**
+After validating the local configuration, it invokes `supabase db reset --local`
+against `infra`, applies the Drizzle history, and provisions the demo again. It
+never selects a linked project or reads a remote URL for the subsequent migration.
+The seed does not recreate galleries, clients or files: those tables belong to
+later milestones (D89).
+
+CI also runs `db:verify-local` against a disposable **real Supabase** stack, then
+resets and verifies again. This checks stable IDs, counts, password login (200)
+and an actual connection as `app_api`. Unit tests reject unsafe destinations;
+Postgres integration tests cover idempotence, concurrent runs and collisions.
 
 ## Checks and production build
 

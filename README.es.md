@@ -84,32 +84,41 @@ docs/             Bitácora de decisiones y documentos de diseño
 
 ## Cómo empezar
 
-**Requisitos:** Git, Node.js 24 (ver `.nvmrc`) y pnpm 10.34.6.
+**Requisitos:** Git, Node.js 24 (ver `.nvmrc`), pnpm 10.34.6 y Docker Desktop con el motor Linux arrancado.
 
 ```bash
 npm install -g pnpm@10.34.6
 git clone https://github.com/Rurbis/focaldrop.git
 cd focaldrop
-pnpm install
+pnpm install --frozen-lockfile
+```
+
+Sigue la [guía de Supabase local](infra/supabase/README.md) para arrancar la pila y generar `infra/supabase/.env.local`, ignorado por Git. Copia `apps/api/.env.example` a `apps/api/.env` si todavía no existe; si ya existe, añade las variables de BD sin sobrescribir los valores actuales. Después ejecuta:
+
+```bash
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
-El panel corre en http://localhost:3000/admin.
-
-> **La base de datos local llega pronto.** Supabase corre en local con Docker mediante la CLI de Supabase, con datos de muestra de una agencia demo. Los pasos llegan con las issues #8 y #15.
+El panel corre en http://localhost:3000/admin y la API en http://localhost:3001/health. El seed local crea la agencia `demo`, el dominio `localhost` y el owner `owner@focaldrop.test` con contraseña `Focaldrop-local-only-2026!`. Son credenciales sintéticas solo para Docker local; el login del panel se implementa en la #18. La [guía de la BD](apps/api/README.md#local-demo-issue-15) explica el reset y las pruebas de integración.
 
 ## Comandos
 
 Se corren desde la raíz del repo. Turborepo ejecuta cada tarea en las apps y paquetes que la tengan, compilando primero las dependencias.
 
-| Comando                             | Qué hace                                  |
-| ----------------------------------- | ----------------------------------------- |
-| `pnpm dev`                          | Levanta todas las apps en modo desarrollo |
-| `pnpm build`                        | Compila todas las apps y paquetes         |
-| `pnpm lint`                         | ESLint, con información de tipos          |
-| `pnpm typecheck`                    | Revisión de tipos de TypeScript           |
-| `pnpm test`                         | Pruebas (Vitest)                          |
-| `pnpm format` / `pnpm format:check` | Prettier                                  |
+| Comando                             | Qué hace                                                    |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `pnpm dev`                          | Levanta todas las apps en modo desarrollo                   |
+| `pnpm build`                        | Compila todas las apps y paquetes                           |
+| `pnpm lint`                         | ESLint, con información de tipos                            |
+| `pnpm typecheck`                    | Revisión de tipos de TypeScript                             |
+| `pnpm test`                         | Pruebas (Vitest)                                            |
+| `pnpm db:start` / `pnpm db:stop`    | Supabase local en Docker                                    |
+| `pnpm db:migrate`                   | Aplica las migraciones versionadas de Drizzle               |
+| `pnpm db:seed`                      | Crea o reutiliza la agencia demo y su owner                 |
+| `pnpm db:reset`                     | Borra los datos de Supabase local, migra y siembra de nuevo |
+| `pnpm format` / `pnpm format:check` | Prettier                                                    |
 
 ## Cómo contribuir
 

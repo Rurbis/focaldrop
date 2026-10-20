@@ -21,7 +21,10 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "test:integration": "vitest run --config ./vitest.config.integration.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.cli.ts"
+    "db:migrate": "tsx src/db/migrate.cli.ts",
+    "db:seed": "tsx src/db/seed.cli.ts",
+    "db:reset": "tsx src/db/reset.cli.ts",
+    "db:verify-local": "tsx test/local-seed.smoke.ts"
   },
   "dependencies": {
     "@focaldrop/shared": "workspace:*",

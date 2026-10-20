@@ -72,3 +72,38 @@ jobs:
 
       - name: Test and build
         run: pnpm exec turbo run test build --affected
+
+  local-seed:
+    # A real local Supabase instance catches Auth/role differences that a plain
+    # Postgres fixture cannot. No staging credentials or project are used.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: development
+      MIGRATIONS_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter @focaldrop/shared build
+      - name: Start disposable local Supabase
+        run: |
+          if ! pnpm db:start > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            sed -E 's/(eyJ[A-Za-z0-9_.-]+|sb_secret_[A-Za-z0-9_-]+)/[redacted]/g' "$RUNNER_TEMP/supabase-start.log" | tail -n 40
+            exit 1
+          fi
+      - name: Capture local CLI credentials without printing them
+        run: pnpm exec supabase status --workdir infra --output env > infra/supabase/.env.local
+      - name: Migrate and verify repeated seed, login and runtime role
+        run: |
+          pnpm db:migrate
+          pnpm --filter @focaldrop/api db:verify-local
+      - name: Verify reset applies migrations and seeds again
+        run: |
+          if ! pnpm db:reset > "$RUNNER_TEMP/supabase-reset.log" 2>&1; then
+            sed -E 's/(eyJ[A-Za-z0-9_.-]+|sb_secret_[A-Za-z0-9_-]+)/[redacted]/g' "$RUNNER_TEMP/supabase-reset.log" | tail -n 40
+            exit 1
+          fi
+          pnpm --filter @focaldrop/api db:verify-local
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm db:stop
