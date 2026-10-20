@@ -70,6 +70,50 @@ from the team's secret store and set `SENTRY_ENVIRONMENT=staging`; do not create
 a second project or commit the DSN. A post-deploy check in the real Sentry project
 still requires that environment's DSN and access to its dashboard.
 
+## Database (issue #11)
+
+The milestone-0 schema lives in `src/db/schema/`: `agencies`, `agency_domains`,
+`profiles` and `agency_members`. Application IDs use UUID v7; a profile keeps the
+identifier assigned by Supabase Auth. `verified_at`, notification preferences and
+storage-policy acceptance are included now as required by the data design.
+
+After starting [local Supabase](../../infra/supabase/README.md), copy the database
+settings from `.env.example` to `apps/api/.env` and run from the repository root:
+
+```sh
+pnpm db:migrate
+pnpm db:generate --name=describe_the_change
+```
+
+`db:migrate` reads `MIGRATIONS_DATABASE_URL`, falling back to `DATABASE_URL` for CI.
+Use the administrator/session connection for DDL, never the transaction pooler.
+`db:generate` needs no database credentials. Review and commit the generated SQL,
+snapshot and journal together. The first migration is `drizzle/0001_platform.sql`;
+its final section contains the custom layer-0 grants and policies (D60).
+
+Supabase owns `auth.users`, `anon` and `authenticated`; migrations do not recreate
+them. Every platform table has RLS enabled, no grants to `PUBLIC`, `anon` or
+`authenticated`, and a CRUD policy for `app_api`. The runtime role has no superuser,
+role-creation or RLS-bypass privileges. Its password is deliberately absent from
+migrations: the local seed (#15) configures a Docker-only password; staging must
+provision its own password outside Git. Layer 0 deliberately allows `app_api`
+across agencies; guards/repositories implement layer 1 (#12–#14).
+
+Integration tests require `TEST_DATABASE_URL` (or CI's `DATABASE_URL`) pointing to
+a loopback PostgreSQL 17 server with `CREATEDB`. Each suite creates and removes its
+own `focaldrop_test_*` database and supplies a minimal external Auth fixture. It
+checks a fresh migration, constraints, account-deletion cascades, permissions,
+RLS and a repeated migration. It never resets the database supplied in the URL.
+
+```powershell
+$env:TEST_DATABASE_URL = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+pnpm --filter @focaldrop/api test:integration
+```
+
+`createDatabase()` uses `prepare: false` for Supabase's transaction pooler. It
+returns a typed Drizzle database and the underlying client, which consumers must
+close on shutdown. The health endpoint remains independent of database access.
+
 ## Checks and production build
 
 ```sh
