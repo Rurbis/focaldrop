@@ -43,6 +43,10 @@ Se revisa en cada PR que toque interfaz. **Señales de "hecho con IA" que no deb
 - Una sola fuente de sistema para todo, o tamaños sin jerarquía clara.
 - Animación de entrada en cada bloque al hacer scroll.
 - Una paleta que no tiene nada que ver con las fotos.
+- Etiquetas diminutas en mayúsculas espaciadas, o un "antetítulo" encima de cada título.
+- Rayas finas para separar secciones, contornos de 1 px y sombras en cosas que no flotan.
+- Carruseles en la portada: casi nadie pasa de la primera foto.
+- Texto sobre una foto sin velo que garantice el contraste.
 
 **Lo que sí:**
 
@@ -51,6 +55,7 @@ Se revisa en cada PR que toque interfaz. **Señales de "hecho con IA" que no deb
 - Textos específicos en la voz de la agencia (tipos de evento, lugares, procesos), en español de México.
 - Espacios con ritmo y asimetría intencional, no bloques iguales apilados.
 - Detalles que se notan sin verse: carga de fotos con su color dominante, foco visible, estados vacíos y de error escritos para personas.
+- **Medibles:** máximo 2 familias tipográficas y 5 tamaños por página; texto corrido de 16 px o más y nada legible por debajo de 13 px; títulos de 2 líneas como máximo en cualquier ancho; la foto de portada ocupa al menos la mitad de la primera pantalla. Las reglas y los números vienen de `taste-skill` (estudio de 247 sitios de galería) y su inspector los mide en un navegador real.
 
 ## 5. Plan por partes
 
@@ -73,7 +78,38 @@ Eligió 2 de los 5 sitios propuestos; descartó el estilo revista con tonos tier
 - **elizabethmessina.com:** fotos grandes que van pasando una por una, letra elegante.
 - **jonaspeterson.com:** cinematográfico, foto a pantalla completa con el texto encima.
 
-El análisis de la parte 1 se agrega aquí. Las capturas de esos sitios no se guardan en el repo: son obra de otros.
+### Análisis (parte 1, 2026-10-20)
+
+Medido con el inspector de `taste-skill` y el navegador integrado, a 1440, 768 y 390 px. Las capturas se quedaron fuera del repo: son obra de otros.
+
+**Messina** está hecho con una plantilla de Pixieset, un competidor directo. Fondo blanco, fotos luminosas de luz natural presentadas en pares, y el portafolio organizado por **categorías que funcionan como puertas** (una foto grande con su nombre debajo). Una serif de display fina y en mayúsculas para títulos y una sans pequeña espaciada para todo lo demás, ambas de pago.
+
+**Peterson** abre con una foto a sangre y un título serif corto encima. Sigue con una declaración en primera persona y un "quién soy" con su retrato, y cada trabajo se cuenta como **una historia**: nombre, lugar y fecha. Pero usa 6 tipografías y 12 tamaños, 17 etiquetas diminutas en mayúsculas, rayas finas, un carrusel en la portada y textos que quedan tapados al hacer scroll. **En celular, el recorte de la portada deja fuera a la pareja.**
+
+**Lo que tomamos:**
+
+- La foto manda: un fondo neutro (claro u oscuro) para que el color lo pongan las fotos.
+- **Una sola foto de portada, grande, elegida por la agencia**, con un título corto. Nada de carrusel.
+- El portafolio como **puertas por tipo de evento** (bodas y XV años, eventos, retrato, producto), que es justo lo que hace la agencia.
+- **Cada trabajo como historia:** nombre del evento, lugar y fecha, en lugar de una cuadrícula anónima.
+- **Presencia humana:** una sección "quiénes somos" con foto real del equipo y su voz en primera persona.
+- Una serif de display elegante con una de texto tranquila; equivalentes libres de licencia en el catálogo (parte 4).
+- Ritmo lento y mucho aire.
+
+**Lo que evitamos:** todo lo que el inspector marcó (exceso de fuentes y tamaños, etiquetas diminutas, rayas, carruseles, texto tapado o sin contraste) y el aire de plantilla genérica.
+
+**Lo que esto exige a la plantilla:**
+
+- **Punto focal por foto:** la agencia marca dónde está lo importante y el recorte lo respeta en cada ancho. Así no se pierde a la pareja en celular.
+- **Velo automático** bajo cualquier texto sobre foto, con el contraste verificado.
+
+### La idea propuesta (para validar en la parte 4)
+
+`taste-skill` pide que la idea salga del sujeto, no de la categoría. En una plantilla el sujeto cambia con cada agencia, pero siempre hay dos cosas propias: **sus fotos y sus eventos**. La propuesta:
+
+> En este sitio, **los eventos reales de la agencia** se vuelven **la estructura**: cada sección se cuenta con una historia suya (qué, dónde, cuándo), no con texto genérico.
+
+**Lo único interactivo: "¿Qué estás celebrando?"** El visitante elige su ocasión (boda, XV años, evento, retrato o producto) y el sitio le muestra el trabajo de esa categoría, el paquete que le corresponde con su precio "desde" (D22) y un botón de WhatsApp con el mensaje ya escrito para esa ocasión (D31). Usa contenido real de la base de datos, funciona con el pulgar y sin JavaScript es un simple menú de enlaces. Responde la pregunta que un cliente medio trae al llegar: "¿hacen lo mío y cuánto cuesta?".
 
 ## 7. Barra de calidad
 
