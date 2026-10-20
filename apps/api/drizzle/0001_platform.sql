@@ -70,7 +70,17 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 --> statement-breakpoint
-ALTER ROLE app_api NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+-- Supabase's postgres role is not a superuser. It can create a restricted role,
+-- but cannot ALTER privileged attributes even to set them to false. Validate
+-- an existing role instead of attempting to rewrite those attributes.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_roles WHERE rolname = 'app_api' AND
+      (rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls OR NOT rolcanlogin)
+  ) THEN
+    RAISE EXCEPTION 'app_api must be a login role without administrative privileges or RLS bypass';
+  END IF;
+END $$;
 --> statement-breakpoint
 REVOKE ALL ON TABLE public.agencies, public.agency_domains, public.profiles, public.agency_members FROM PUBLIC, anon, authenticated;
 --> statement-breakpoint

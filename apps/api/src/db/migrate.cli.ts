@@ -8,5 +8,6 @@ try {
   console.info('Database migrations applied.');
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Database migration failed.');
+  if (error instanceof Error && error.cause instanceof Error) console.error(error.cause.message);
   process.exitCode = 1;
 }
