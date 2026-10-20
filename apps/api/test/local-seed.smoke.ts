@@ -27,7 +27,20 @@ const runtimeUrl = new URL(config.databaseUrl);
 runtimeUrl.username = 'app_api';
 runtimeUrl.password = LOCAL_DEMO.apiPassword;
 const { client } = createDatabase(runtimeUrl.toString(), 1);
+const administrator = createDatabase(config.databaseUrl, 1).client;
 try {
+  const [access] = await administrator<{ accessible: number }[]>`
+    SELECT count(*)::int AS accessible FROM pg_tables
+    CROSS JOIN (VALUES ('anon'), ('authenticated')) AS roles(name)
+    WHERE schemaname = 'public'
+      AND tablename IN ('agencies', 'agency_domains', 'profiles', 'agency_members')
+      AND has_table_privilege(roles.name, format('%I.%I', schemaname, tablename), 'SELECT,INSERT,UPDATE,DELETE')
+  `;
+  assert.equal(
+    access?.accessible,
+    0,
+    'Supabase defaults must not leave direct client grants behind.',
+  );
   const [row] = await client<{ agencies: number; domains: number; owners: number }[]>`
     SELECT (SELECT count(*)::int FROM agencies WHERE slug = 'demo') AS agencies,
            (SELECT count(*)::int FROM agency_domains WHERE hostname = 'localhost') AS domains,
@@ -36,6 +49,7 @@ try {
   assert.deepEqual(row, { agencies: 1, domains: 1, owners: 1 });
 } finally {
   await client.end();
+  await administrator.end();
 }
 console.info(
   'Local seed verified: stable IDs, unique demo data, owner login 200 and app_api access.',
