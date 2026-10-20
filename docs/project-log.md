@@ -5,7 +5,7 @@
 > **Repo público:** aquí van decisiones y sus razones, nunca datos personales ni detalles operativos de las cuentas (quién paga, datos fiscales, dónde vive el 2FA, cuentas de recuperación). Eso vive en el gestor de contraseñas del equipo.
 
 - **Última actualización:** 2026-10-19
-- **Estado:** Fases 1 y 2 **aprobadas (2026-10-11)** · **Fase 3 en curso: hito 0** · #1 ✅ (1.25 h) · #2 ✅ (≈ 1.5 h) · #5 ✅ (1.25 h) · #6 ✅ (1 h) · #30 ✅ (1 h) · #9 ✅ (1.5 h) · #3 ✅ (≈ 1.25 h) · #4 ✅ (≈ 1.25 h) · #7 ✅ (≈ 2 h) · #17 ✅ (≈ 1 h) · #10 ✅ (Fabian, PR #40) · **parciales:** #23 (falta la BD local en los README) y #25 (falta la ADR-0010) · **#8 aprobada (PR #38), falta mezclarla** · S-4 (#21) parcial (D129) · **siguiente para el dueño del repo:** la #18, en cuanto se mezcle el #38.
+- **Estado:** Fases 1 y 2 **aprobadas (2026-10-11)** · **Fase 3 en curso: hito 0** · #1 ✅ (1.25 h) · #2 ✅ (≈ 1.5 h) · #5 ✅ (1.25 h) · #6 ✅ (1 h) · #30 ✅ (1 h) · #9 ✅ (1.5 h) · #3 ✅ (≈ 1.25 h) · #4 ✅ (≈ 1.25 h) · #7 ✅ (≈ 2 h) · #17 ✅ (≈ 1 h) · #10 ✅ (Fabian, PR #40) · #8 ✅ (Fabian, PR #38; ≥ 0.4 h documentadas, total pendiente) · **parciales:** #23 (falta la BD local en los README) y #25 (falta la ADR-0010) · S-4 (#21) parcial (D129) · **siguiente para el dueño del repo:** la #18.
 - **Nombre de la plataforma:** **Focal Drop** (D118), identificador técnico `focaldrop`. Antes: nombre en clave `darkroom` (D98).
 - **Repo:** https://github.com/Rurbis/focaldrop (local: `…\Fotos Jr\focaldrop`) · **Tablero:** https://github.com/users/Rurbis/projects/1
 
@@ -45,7 +45,7 @@ Refinado en D1/D5: **todo gratis durante el desarrollo; se paga al lanzar o cuan
 |---|---|
 | **1 · Producto y arquitectura** | ✅ **Aprobada el 2026-10-11** (Partes A v3.1, B v1.2 y C v1.1; revisión de alcance D82–D90) |
 | **2 · Metodología y división del trabajo** | ✅ **Aprobada el 2026-10-11** (documento v1.1; D98–D110) |
-| **3 · Ejecución** | 🟡 Hito 0 en curso desde el 2026-10-11 (Fase 2 §9). Cerradas: #1–#7, #9, #10, #17 y #30. Parciales: #23 y #25. #8 aprobada, falta mezclarla. Siguiente: la #18. Tiempos reales en §10. |
+| **3 · Ejecución** | 🟡 Hito 0 en curso desde el 2026-10-11 (Fase 2 §9). Cerradas: #1–#10, #17 y #30. Parciales: #23 y #25. Siguiente: la #18. Tiempos reales en §10. |
 
 Documentos de la Fase 1:
 - [phase-1a-architecture.md](phase-1a-architecture.md): Parte A, arquitectura (v3.1 ✅).
@@ -337,7 +337,7 @@ Revisión integral de las Partes A y B con la pregunta "¿esto lo pueden constru
 
 ## 7. Pendientes técnicos
 
-- **Fase 3 · Hito 0 (en curso):** issues #1–#27 de la Fase 2 §9, en orden, creadas en GitHub con la misma numeración. ✅ #1–#7, #9, #17 y #30. **#7 cerrada (2026-10-15):** PR #33 mezclado en `8318edb` (D124, D125). Configurado y **probado el 2026-10-14**:
+- **Fase 3 · Hito 0 (en curso):** issues #1–#27 de la Fase 2 §9, en orden, creadas en GitHub con la misma numeración. ✅ #1–#10, #17 y #30. **#7 cerrada (2026-10-15):** PR #33 mezclado en `8318edb` (D124, D125). Configurado y **probado el 2026-10-14**:
   - cuenta de pago activa y proyecto `focaldrop`;
   - script corrido en Cloud Shell y presupuesto de MX$100 conectado a `billing-alerts`;
   - corte probado de verdad: `No action` con 10 de 100; con 150 de 100, `billingEnabled = False`; se vinculó otra vez y quedó en `True`, con la función `ACTIVE`.
@@ -347,6 +347,7 @@ Revisión integral de las Partes A y B con la pregunta "¿esto lo pueden constru
   - **PR #41:** `overrides` de npm a `uuid` 11.1.1 en `infra/gcp/billing-guard` por la alerta de Dependabot #1 (GHSA-w5hq-g745-h8pq). `cloudevents` 10.0.0, ya en su última versión, pide `uuid@^8.3.2`; solo usa `v4()`, así que el riesgo era bajo. Se redespliega la próxima vez que corra `bootstrap.sh`.
   - **2026-10-16:** el dueño del repo probó y **aprobó el PR #40 (#10, Nest)**. Sugerencias para el siguiente PR de Fabian: una D# nueva para Vitest en la API (precisa D107, que decía Jest), quitar `vite` fijo y `resolve.tsconfigPaths`, `@types/node` 24.19.0 como la web, quitar `apps/api/.gitattributes` y acordar la estructura de carpetas. **PR #42:** D131 (*cooldown* de Dependabot).
   - **2026-10-19:** Fabian mezcló los PRs #36, #37, #40 (cierra la #10) y #41 (cierra la alerta de `uuid`). El dueño del repo volvió a probar el **PR #38** con las correcciones (Data API 503, login con correo, registro y acceso anónimo cerrados, `.env.local` sin BOM en `infra/supabase/`) y lo aprobó. **El #40 trajo 15 alertas de Dependabot:** `vite` 8.0.0 fijo (10, del servidor de desarrollo) y `multer` 2.2.0 de Nest 12.0.1 (5, de denegación de servicio). Riesgo real bajo, porque Vite no corre en producción y la API no procesa `multipart`. **PR #45:** Nest 12.1.2 (`multer` 2.4.0), sin `vite` fijo, `@types/node` 24.19.0 y sin `apps/api/.gitattributes`, es decir, las sugerencias del #40.
+  - **#8 cerrada (2026-10-19, PR #38):** Supabase CLI 2.121.0 local probado en ambas máquinas; correo habilitado para login, registro público y acceso anónimo cerrados, Data API apagada y `.env.local` sin BOM. Rama sincronizada con `main`, conservando Nest 12.1.2 y las dependencias de la API al resolver el conflicto de `pnpm-lock.yaml`. Desbloqueada la #18. Tiempo: ≥ 0.4 h documentadas; falta registrar el total de implementación y cierre (§10).
 - ✅ **#3 y #4 mezcladas (2026-10-14):** Fabian aprobó los dos PRs. PR #32 (CI) en `19bc510`; luego el PR #31 se actualizó con `main`, pasó la CI requerida (typecheck, lint, 46 tests y build; `quality` y `test` en menos de 45 s) y se mezcló en `37b3f58`. **Desbloqueadas para Fabian: #8 y #10; con la #10 también la #11** (esquema del hito 0). **Siguiente para el dueño del repo: #7** (Google Cloud, requiere tarjeta para la facturación).
 - ✅ **#9 cerrada (2026-10-14, 1.5 h):** Sentry `focaldrop` (EE. UU.) con `web`, `api` y `zip-worker`, alertas "high priority" por correo, sin IP y con *scrubbers*; DSN en Bitwarden. UptimeRobot con Google, con el monitor del asistente en pausa. Las cuentas son de los dos (D123); solo una persona entra a Sentry por sus términos; Fabian ve las alertas en el Gmail de la plataforma.
 - ✅ **#30 cerrada (2026-10-13, 1 h):** organización de Supabase **Focal Drop** (Free) con MFA del dueño del repo; proyecto `focaldrop-staging` en `us-east-1`; registro público apagado; Data API apagada; solo llaves nuevas (las legacy desactivadas); JWT ES256 verificado; todo en Bitwarden (D121). **Pendiente de Fabian:** aceptar la invitación a Supabase (Administrator) con su propia cuenta y el mismo correo, y activar su MFA.
@@ -440,6 +441,7 @@ Horas reales frente a las estimadas, por issue. Es el insumo de la retro de cada
 | #30 Supabase staging | R | 1 h | 1 h | Incluyó verificar en la documentación los cambios recientes de Supabase (llaves nuevas, JWT asimétrico, Data API). |
 | #4 CI | R | 3 h | ≈ 1.25 h | Incluyó probar cómo detecta Turbo los cambios de la raíz (hallazgo de D122), los checks requeridos y la mezcla. |
 | #3 `@focaldrop/shared` | R | 2 h | ≈ 1.25 h | Incluye verificar el formato de Nest 12 y la compatibilidad de Vitest 5, actualizar el PR con `main` y la mezcla. |
+| #8 Supabase local | Fabian | 1.5 h | ≥ 0.4 h documentadas; total pendiente | Alcance local (D116), PR #38: Supabase CLI 2.121.0 y guía probada en ambas máquinas. ≈ 0.4 h registradas en el PR para correcciones y validaciones del 2026-10-18; falta registrar la implementación inicial y el tiempo total, incluido el cierre. |
 
 ## 11. Historial
 
@@ -486,3 +488,4 @@ Horas reales frente a las estimadas, por issue. Es el insumo de la retro de cada
 | 2026-10-17 | **Respuestas de la agencia:** mandó 5 originales, pero en RAW (`.ARW`, ~24 MB). Los ~24 MB de D130 eran el RAW, no el JPG que entrega, así que S3 y el costo de R2 quedan por recalcular; ZIP64 sigue haciendo falta. Se le piden los JPG tal como los entrega y 2–3 MP4. Para el moodboard eligió elizabethmessina.com y jonaspeterson.com. |
 | 2026-10-19 | Fabian mezcló los PRs #36, #37, #40 (#10 ✅) y #41. El PR #38 (#8) se volvió a probar y quedó aprobado. **PR #45:** cierra las 15 alertas que trajo el #40 (Nest 12.1.2 con `multer` 2.4.0 y sin `vite` fijo). Recordatorio de proceso: según la Fase 2 §3, el autor mezcla sus PRs. |
 | 2026-10-19 | **D132:** CodeQL activado (JavaScript/TypeScript y Actions); el primer análisis terminó sin alertas. |
+| 2026-10-19 | **#8 cerrada (PR #38):** entorno local con Supabase CLI 2.121.0 y guía probada en ambas máquinas. Correo habilitado para login, registro público y acceso anónimo cerrados, Data API apagada y `.env.local` sin BOM. Se incorpora `main` y se resuelve `pnpm-lock.yaml`, conservando la API Nest 12.1.2. Bitácora actualizada como pidió la revisión. Tiempo real: ≥ 0.4 h documentadas de correcciones y validaciones; total pendiente (§10). Desbloqueada la #18. |
