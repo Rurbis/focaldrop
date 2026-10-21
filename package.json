@@ -19,8 +19,8 @@
     "db:stop": "supabase stop --workdir infra",
     "db:generate": "pnpm --filter @focaldrop/shared build && pnpm --filter @focaldrop/api db:generate",
     "db:migrate": "pnpm --filter @focaldrop/shared build && pnpm --filter @focaldrop/api db:migrate",
-    "db:seed": "pnpm --filter @focaldrop/api db:seed",
-    "db:reset": "pnpm --filter @focaldrop/api db:reset",
+    "db:seed": "pnpm --filter @focaldrop/shared build && pnpm --filter @focaldrop/api db:seed",
+    "db:reset": "pnpm --filter @focaldrop/shared build && pnpm --filter @focaldrop/api db:reset",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"

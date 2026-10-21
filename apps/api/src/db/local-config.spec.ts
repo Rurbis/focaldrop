@@ -3,6 +3,24 @@ import { localSeedConfig } from './local-config.js';
 const input = { NODE_ENV: 'development', SUPABASE_SECRET_KEY: 'synthetic-test-key' };
 
 describe('local seed/reset destination checks', () => {
+  it('prefers the modern CLI secret when both key formats are available', () => {
+    expect(
+      localSeedConfig(
+        { NODE_ENV: 'development' },
+        { SECRET_KEY: 'modern-local-only', SERVICE_ROLE_KEY: 'legacy-local-only' },
+      ).secretKey,
+    ).toBe('modern-local-only');
+  });
+
+  it('keeps an explicitly configured secret ahead of CLI keys', () => {
+    expect(
+      localSeedConfig(input, {
+        SECRET_KEY: 'modern-local-only',
+        SERVICE_ROLE_KEY: 'legacy-local-only',
+      }).secretKey,
+    ).toBe(input.SUPABASE_SECRET_KEY);
+  });
+
   it('uses local CLI credentials without requiring them in the app env', () => {
     expect(
       localSeedConfig(

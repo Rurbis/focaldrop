@@ -34,7 +34,8 @@ export function localSeedConfig(input: NodeJS.ProcessEnv, cli: NodeJS.ProcessEnv
   if (new URL(databaseUrl).username !== 'postgres') {
     throw new Error('Local seed/reset requires the local postgres administrator connection.');
   }
-  const secretKey = input.SUPABASE_SECRET_KEY?.trim() || cli.SERVICE_ROLE_KEY || cli.SECRET_KEY;
+  const secretKey =
+    input.SUPABASE_SECRET_KEY?.trim() || cli.SECRET_KEY?.trim() || cli.SERVICE_ROLE_KEY?.trim();
   if (!secretKey)
     throw new Error('Generate infra/supabase/.env.local from supabase status before seeding.');
   return {

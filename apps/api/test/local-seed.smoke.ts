@@ -31,10 +31,10 @@ const administrator = createDatabase(config.databaseUrl, 1).client;
 try {
   const [access] = await administrator<{ accessible: number }[]>`
     SELECT count(*)::int AS accessible FROM pg_tables
-    CROSS JOIN (VALUES ('anon'), ('authenticated')) AS roles(name)
+    CROSS JOIN (VALUES ('anon'), ('authenticated'), ('service_role')) AS roles(name)
     WHERE schemaname = 'public'
       AND tablename IN ('agencies', 'agency_domains', 'profiles', 'agency_members')
-      AND has_table_privilege(roles.name, format('%I.%I', schemaname, tablename), 'SELECT,INSERT,UPDATE,DELETE')
+      AND has_table_privilege(roles.name, format('%I.%I', schemaname, tablename), 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
   `;
   assert.equal(
     access?.accessible,

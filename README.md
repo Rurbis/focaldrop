@@ -101,6 +101,9 @@ pnpm db:seed
 pnpm dev
 ```
 
+The root `db:generate`, `db:migrate`, `db:seed` and `db:reset` commands build
+`@focaldrop/shared` before loading the database schema, including in a fresh clone.
+
 The panel runs at http://localhost:3000/admin and the API at http://localhost:3001/health. The local seed creates agency `demo`, domain `localhost` and owner `owner@focaldrop.test` with password `Focaldrop-local-only-2026!`. These synthetic credentials are for local Docker only; panel login is implemented in #18. See the [database guide](apps/api/README.md#local-demo-issue-15) for reset and integration tests.
 
 ## Commands

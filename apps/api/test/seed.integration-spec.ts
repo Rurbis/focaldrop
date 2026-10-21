@@ -8,7 +8,9 @@ import { agencies, agencyDomains, agencyMembers, profiles } from '../src/db/sche
 import { seedDemo } from '../src/db/seed.js';
 import { createTestDatabase } from './helpers/database.js';
 
-describe('idempotent local demo data', () => {
+const describeWithDatabase = describe.skipIf(!process.env.TEST_DATABASE_URL && !process.env.CI);
+
+describeWithDatabase('idempotent local demo data', () => {
   let fixture: Awaited<ReturnType<typeof createTestDatabase>>;
   let database: ReturnType<typeof createDatabase>;
   const userId = uuidv7();

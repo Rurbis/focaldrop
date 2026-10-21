@@ -152,7 +152,9 @@ seeds from duplicating data. The profile is not a platform administrator.
 on ports 54321/54322 and the `postgres` database. Remote URLs, alternate databases,
 query-string connection overrides and a non-administrator migration connection
 are rejected before connecting. Admin keys come from the ignored CLI env file
-(or `SUPABASE_SECRET_KEY`); keys and tokens are never logged. These credentials
+(or `SUPABASE_SECRET_KEY`); the explicit key takes precedence, followed by the
+CLI's modern `SECRET_KEY`, with legacy `SERVICE_ROLE_KEY` only as a fallback
+(D121). Keys and tokens are never logged. These credentials
 must never be reused in staging or production.
 
 ```sh
@@ -166,10 +168,17 @@ never selects a linked project or reads a remote URL for the subsequent migratio
 The seed does not recreate galleries, clients or files: those tables belong to
 later milestones (D89).
 
-CI also runs `db:verify-local` against a disposable **real Supabase** stack, then
-resets and verifies again. This checks stable IDs, counts, password login (200)
+All four root database commands build `@focaldrop/shared` before running the API
+script (D120). No manual shared build is needed for the README's quick start.
+CI migrates a fresh clone without `shared/dist`, deliberately makes that build
+obsolete before `pnpm db:seed`, then runs `db:verify-local` against a disposable
+**real Supabase** stack. It also runs the integration suites with Supabase's
+non-superuser `postgres`, resets and verifies again. This checks stable IDs,
+counts, password login (200), all revoked client/service-role table privileges
 and an actual connection as `app_api`. Unit tests reject unsafe destinations;
 Postgres integration tests cover idempotence, concurrent runs and collisions.
+The Supabase job runs only when API, shared, Supabase or relevant root/build/CI
+files change, so unrelated web or documentation PRs skip it.
 
 ## Checks and production build
 
