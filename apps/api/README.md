@@ -85,25 +85,33 @@ pnpm db:migrate
 pnpm db:generate --name=describe_the_change
 ```
 
-`db:migrate` reads `MIGRATIONS_DATABASE_URL`, falling back to `DATABASE_URL` for CI.
+`db:migrate` requires `MIGRATIONS_DATABASE_URL`; it never uses `DATABASE_URL`.
 Use the administrator/session connection for DDL, never the transaction pooler.
-`db:generate` needs no database credentials. Review and commit the generated SQL,
+Both root commands build `@focaldrop/shared` first, so they also work in a fresh
+clone and after changes to its exports (D120).
+`db:generate` reads all exports from `src/db/schema/index.ts` and needs no database credentials. Review and commit the generated SQL,
 snapshot and journal together. The first migration is `drizzle/0001_platform.sql`;
 its final section contains the custom layer-0 grants and policies (D60).
 
-Supabase owns `auth.users`, `anon` and `authenticated`; migrations do not recreate
-them. Every platform table has RLS enabled, no grants to `PUBLIC`, `anon` or
-`authenticated`, and a CRUD policy for `app_api`. The runtime role has no superuser,
+Supabase owns `auth.users`, `anon`, `authenticated` and `service_role`; migrations do not recreate
+them. Every platform table has RLS enabled, no grants to `PUBLIC`, `anon`,
+`authenticated` or `service_role` (including `TRUNCATE`, `REFERENCES` and `TRIGGER`), and a CRUD policy for `app_api`. The runtime role has no superuser,
 role-creation or RLS-bypass privileges. Its password is deliberately absent from
 migrations: the local seed configures a Docker-only password; staging must
 provision its own password outside Git. Layer 0 deliberately allows `app_api`
 across agencies; guards/repositories implement layer 1 (#12–#14).
 
-Integration tests require `TEST_DATABASE_URL` (or CI's `DATABASE_URL`) pointing to
+`pnpm test` skips integration suites when `TEST_DATABASE_URL` is absent outside CI.
+In CI the suites always run and fail if that variable is missing; the workflow
+explicitly supplies both `TEST_DATABASE_URL` and `MIGRATIONS_DATABASE_URL`.
+Integration tests require `TEST_DATABASE_URL` pointing to
 a loopback PostgreSQL 17 server with `CREATEDB`. Each suite creates and removes its
 own `focaldrop_test_*` database and supplies a minimal external Auth fixture. It
 checks a fresh migration, constraints, account-deletion cascades, permissions,
-RLS and a repeated migration. It never resets the database supplied in the URL.
+RLS and a repeated migration. The `app_api` exercise grants temporary `SET ROLE`
+membership inside its transaction and always rolls it back, checking that the
+original membership is restored. This also works with Supabase's non-superuser
+`postgres` on PostgreSQL 16+. It never resets the database supplied in the URL.
 
 ```powershell
 $env:TEST_DATABASE_URL = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'

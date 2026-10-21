@@ -5,7 +5,9 @@ import { migrateDatabase } from '../src/db/migrate.js';
 import { agencies, agencyDomains } from '../src/db/schema/index.js';
 import { createTestDatabase } from './helpers/database.js';
 
-describe('platform migrations on a fresh PostgreSQL database', () => {
+const describeWithDatabase = describe.skipIf(!process.env.TEST_DATABASE_URL && !process.env.CI);
+
+describeWithDatabase('platform migrations on a fresh PostgreSQL database', () => {
   let fixture: Awaited<ReturnType<typeof createTestDatabase>>;
 
   beforeAll(async () => {
@@ -115,35 +117,63 @@ describe('platform migrations on a fresh PostgreSQL database', () => {
     ).toHaveLength(0);
   });
 
-  it.each(['anon', 'authenticated'])('denies direct data access to %s', async (role) => {
-    await expect(
-      fixture.client.begin(async (tx) => {
-        await tx.unsafe(`SET LOCAL ROLE ${role}`);
-        await tx`SELECT * FROM agencies`;
-      }),
-    ).rejects.toMatchObject({ code: '42501' });
-  });
+  it.each(['anon', 'authenticated', 'service_role'])(
+    'revokes every table privilege from %s',
+    async (role) => {
+      const privileges = await fixture.client<{ tablename: string; accessible: boolean }[]>`
+      SELECT tablename,
+        has_table_privilege(${role}, format('%I.%I', schemaname, tablename),
+          'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS accessible
+      FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename
+    `;
+      expect(privileges).toHaveLength(4);
+      expect(privileges.every(({ accessible }) => !accessible)).toBe(true);
+    },
+  );
 
   it('grants app_api CRUD through layer-0 policies without superuser or RLS bypass', async () => {
     const [role] = await fixture.client<
-      { rolsuper: boolean; rolbypassrls: boolean; rolcreaterole: boolean; rolcanlogin: boolean }[]
+      {
+        rolsuper: boolean;
+        rolbypassrls: boolean;
+        rolcreaterole: boolean;
+        rolcreatedb: boolean;
+        rolreplication: boolean;
+        rolcanlogin: boolean;
+      }[]
     >`
-      SELECT rolsuper, rolbypassrls, rolcreaterole, rolcanlogin FROM pg_roles WHERE rolname = 'app_api'
+      SELECT rolsuper, rolbypassrls, rolcreaterole, rolcreatedb, rolreplication, rolcanlogin FROM pg_roles WHERE rolname = 'app_api'
     `;
     expect(role).toEqual({
       rolsuper: false,
       rolbypassrls: false,
       rolcreaterole: false,
+      rolcreatedb: false,
+      rolreplication: false,
       rolcanlogin: true,
     });
     const id = uuidv7();
-    await fixture.client.begin(async (tx) => {
-      await tx.unsafe('SET LOCAL ROLE app_api');
-      await tx`INSERT INTO agencies (id, slug, name, notification_email) VALUES (${id}, ${`api-${id}`}, 'API test', 'api@example.invalid')`;
-      expect(await tx`SELECT id FROM agencies WHERE id = ${id}`).toHaveLength(1);
-      await tx`UPDATE agencies SET name = 'Updated' WHERE id = ${id}`;
-      await tx`DELETE FROM agencies WHERE id = ${id}`;
-    });
+    const memberships = () => fixture.client`
+      SELECT * FROM pg_auth_members
+      WHERE roleid = 'app_api'::regrole AND member = current_user::regrole
+      ORDER BY grantor
+    `;
+    const before = await memberships();
+    const rollback = new Error('Roll back temporary role membership and test data.');
+    await expect(
+      fixture.client.begin(async (tx) => {
+        // Postgres 16+ gives a non-superuser role creator ADMIN, but not SET.
+        // Roll back this grant together with the CRUD exercise, even on failure.
+        await tx.unsafe('GRANT app_api TO CURRENT_USER WITH INHERIT FALSE, SET TRUE');
+        await tx.unsafe('SET LOCAL ROLE app_api');
+        await tx`INSERT INTO agencies (id, slug, name, notification_email) VALUES (${id}, ${`api-${id}`}, 'API test', 'api@example.invalid')`;
+        expect(await tx`SELECT id FROM agencies WHERE id = ${id}`).toHaveLength(1);
+        await tx`UPDATE agencies SET name = 'Updated' WHERE id = ${id}`;
+        await tx`DELETE FROM agencies WHERE id = ${id}`;
+        throw rollback;
+      }),
+    ).rejects.toBe(rollback);
+    expect(await memberships()).toEqual(before);
     const policies =
       await fixture.client`SELECT tablename FROM pg_policies WHERE schemaname = 'public' AND roles = ARRAY['app_api']::name[]`;
     expect(policies).toHaveLength(4);
