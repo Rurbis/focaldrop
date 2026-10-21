@@ -41,12 +41,16 @@ export async function requestPasswordReset(
   const parsed = PasswordResetRequestSchema.safeParse({ email });
   if (!parsed.success) return { status: 'error', error: messageFor(parsed.error), email };
 
-  // Supabase answers the same whether the address exists or not, and so does
-  // the form: it never reveals which emails have an account. The link goes to
+  // The form never reveals which emails have an account. Supabase answers 200
+  // for an unknown address, but for a real one it can fail with a per-user rate
+  // limit or a sending error, so every outcome gets the same neutral answer and
+  // the reason stays in the server log (without the address). The link goes to
   // /admin/auth/confirm through the recovery email template.
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email);
-  if (error) return { status: 'error', error: authErrorKey(error), email };
+  if (error) {
+    console.error('Password recovery request failed', { code: error.code, status: error.status });
+  }
 
   return { status: 'sent' };
 }
