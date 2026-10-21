@@ -4,10 +4,10 @@ import postgres from 'postgres';
 
 /** Each integration suite owns a disposable database, never the developer's data. */
 export async function createTestDatabase() {
-  const connection = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+  const connection = process.env.TEST_DATABASE_URL;
   if (!connection) {
     throw new Error(
-      'Integration tests require TEST_DATABASE_URL (or CI DATABASE_URL), with CREATEDB.',
+      'Integration tests require TEST_DATABASE_URL, with CREATEDB (mandatory in CI).',
     );
   }
   const url = new URL(connection);
@@ -37,6 +37,11 @@ export async function createTestDatabase() {
       EXCEPTION WHEN duplicate_object THEN NULL; END $$;
       DO $$ BEGIN CREATE ROLE authenticated NOLOGIN;
       EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE ROLE service_role NOLOGIN;
+      EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      -- Reproduce Supabase's permissive defaults so REVOKE is actually exercised.
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public
+        GRANT ALL ON TABLES TO anon, authenticated, service_role;
     `);
   } catch (error) {
     await close();

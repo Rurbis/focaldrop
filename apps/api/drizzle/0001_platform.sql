@@ -63,8 +63,8 @@ CREATE INDEX "agency_domains_agency_id_idx" ON "agency_domains" USING btree ("ag
 CREATE UNIQUE INDEX "agency_domains_one_primary_idx" ON "agency_domains" USING btree ("agency_id") WHERE "agency_domains"."is_primary";--> statement-breakpoint
 CREATE INDEX "agency_members_user_id_idx" ON "agency_members" USING btree ("user_id");
 --> statement-breakpoint
--- Custom layer-0 security (D60). Supabase owns auth.users, anon and
--- authenticated; tests provide only those external prerequisites on Postgres.
+-- Custom layer-0 security (D60). Supabase owns auth.users and its API roles;
+-- tests provide only those external prerequisites on plain Postgres.
 DO $$ BEGIN
   CREATE ROLE app_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
 EXCEPTION WHEN duplicate_object THEN NULL;
@@ -82,7 +82,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 --> statement-breakpoint
-REVOKE ALL ON TABLE public.agencies, public.agency_domains, public.profiles, public.agency_members FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.agencies, public.agency_domains, public.profiles, public.agency_members FROM PUBLIC, anon, authenticated, service_role;
 --> statement-breakpoint
 GRANT USAGE ON SCHEMA public TO app_api;
 --> statement-breakpoint
