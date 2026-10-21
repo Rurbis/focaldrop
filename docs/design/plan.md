@@ -59,15 +59,34 @@ Se revisa en cada PR que toque interfaz. **Señales de "hecho con IA" que no deb
 
 ## 5. Plan por partes
 
+Primero **todo lo de Focal Drop** (bloque A) y después **lo de las agencias** (bloque B). El panel es de Focal Drop y ya es parte del hito 0 (#18, #20 y la demo de la #27); el sistema de diseño es la base que luego visten los temas de cada agencia.
+
+### Bloque A · Focal Drop
+
 | Parte | Cuándo | Qué | Skills |
 | ----- | ------ | --- | ------ |
-| **0 · Fundamentos** | Ahora | Este documento, D134 y la barra de calidad (§7). | `constraint-driven-development`, `documentation-and-adrs` |
-| **1 · Investigación y moodboard** | Ahora | Análisis de los dos sitios elegidos (§6): composición, tipografía, ritmo; qué tomar y qué no. Pedir a la agencia qué le gustó y sus JPG reales. | `taste-skill`, navegador integrado |
-| **2 · Sistema de diseño y panel** | Inicio del hito 1 | Tokens (escala tipográfica, espacios, colores semánticos, claro/oscuro en Tailwind v4), primitivas accesibles y componentes propios; identidad del panel. | `impeccable`, `frontend-ui-engineering`, `emil-design-eng`, `source-driven-development`, `break-ui`, `web-design-guidelines` |
-| **3 · Galería del cliente** | Hito 1 | Prototipo con fotos reales y luego la implementación: filas justificadas, visor con gestos, portada, selección y descarga. | `apple-design`, `animate`, `animation-performance`, `performance-optimization`, `break-ui`, `web-design-guidelines` |
-| **4 · Dirección de arte del sitio** | Inicio del hito 2 | 3 variantes del editorial cálido como prototipos, cada una en claro y oscuro y con 2 parejas tipográficas; la agencia elige. Catálogo de parejas y generador de tema con verificación de contraste. | `taste-skill`, `frontend-design`, `artifact-design`; `ui-ux-pro-max` solo como consulta |
-| **5 · Construcción del sitio** | Hito 2 | Secciones de D25 con el tema por tokens y su edición en el panel; 2 rondas sobre el preview. | `taste-skill`, `impeccable`, `find-animation-opportunities`, `animate`, `performance-optimization`, `web-design-guidelines`, `break-ui` |
-| **6 · Calidad continua** | Siempre | Checklist en la plantilla de PR, capturas automáticas en CI y presupuestos de rendimiento. | `constraint-driven-development`, `web-design-guidelines`, `break-ui`, `code-review` |
+| **A0 · Fundamentos** | Hecho | Este documento, D134 y la barra de calidad (§7). | `constraint-driven-development`, `documentation-and-adrs` |
+| **A1 · Marca** | Ahora | Refinar el logo: se conserva el símbolo (las dos mitades, Focal y Drop, con la línea axial); el wordmark usa una sans libre con carácter en lugar de la fuente del sistema; azul óptico propio (el actual, `#2563EB`, es el azul por defecto de Tailwind) y los neutros cálidos del cuarto oscuro. Variantes: ícono, favicon, claro y oscuro. Guía de marca corta. Se eligen sobre prototipos: 3 sans candidatas y 2 o 3 azules. | `frontend-design`, `impeccable`, `artifact-design`; reglas de la casa de `taste-skill` |
+| **A2 · Sistema de diseño** | Ahora | Tokens (escala tipográfica, espacios, colores semánticos, claro y oscuro en Tailwind v4), primitivas accesibles (Radix o React Aria) y componentes propios. | `impeccable`, `frontend-ui-engineering`, `emil-design-eng`, `source-driven-development`, `break-ui`, `web-design-guidelines` |
+| **A3 · Pantallas del panel** | Ahora, para la demo del hito 0 | Login, recuperar contraseña (#18), inicio (#20) y la navegación, con la marca aplicada. | `impeccable`, `emil-design-eng`, `break-ui`, `web-design-guidelines` |
+| **A4 · focaldrop.com** | Al final del bloque (backlog, Should) | Una página sencilla: qué es, para quién, cómo se ve (panel y galería demo) y un contacto. Sirve de portafolio y prepara el SaaS. Sin precios ni registro. | `taste-skill`, `artifact-design` |
+
+### Bloque B · Agencias
+
+| Parte | Cuándo | Qué | Skills |
+| ----- | ------ | --- | ------ |
+| **B1 · Investigación y moodboard** | Hecho | Análisis de los dos sitios elegidos (§6). Pedir a la agencia sus fotos favoritas por tipo de trabajo. | `taste-skill`, navegador integrado |
+| **B2 · Galería del cliente** | Hito 1 | Prototipo con fotos reales y luego la implementación: filas justificadas, visor con gestos, portada, selección y descarga. Usa el tema de la agencia sobre el sistema de A2. | `apple-design`, `animate`, `animation-performance`, `performance-optimization`, `break-ui`, `web-design-guidelines` |
+| **B3 · Dirección de arte del sitio** | Inicio del hito 2 | 3 variantes del editorial cálido como prototipos, cada una en claro y oscuro y con 2 parejas tipográficas; la agencia elige. Catálogo de parejas y generador de tema con verificación de contraste. | `taste-skill`, `frontend-design`, `artifact-design`; `ui-ux-pro-max` solo como consulta |
+| **B4 · Construcción del sitio** | Hito 2 | Secciones de D25 con el tema por tokens y su edición en el panel; 2 rondas sobre el preview. | `taste-skill`, `impeccable`, `find-animation-opportunities`, `animate`, `performance-optimization`, `web-design-guidelines`, `break-ui` |
+
+**Calidad continua (siempre):** checklist en la plantilla de PR, capturas automáticas en CI y presupuestos de rendimiento, con `constraint-driven-development`, `web-design-guidelines`, `break-ui` y `code-review`.
+
+### Marca Focal Drop (acordado)
+
+- **Personalidad:** óptica + cuarto oscuro. Precisión de lente (el azul, la línea axial) con la calidez del laboratorio (neutros cálidos). Sale del nombre y del nombre en clave `darkroom`.
+- **Color:** un azul óptico propio, cercano al actual pero distinto del de Tailwind, con contraste AA; neutros cálidos de fondo.
+- **Tipografía:** una sola sans libre con carácter para wordmark y panel, legible en tablas y formularios.
 
 **Skills que no se usan aquí:** `soft-skill`, `minimalist-skill` y `brutalist-skill` imponen un estilo prefabricado; `image-to-code-skill` está pensada para otro agente; `huashu-design` duplica a `taste-skill`; `redesign-skill` es para sitios existentes; las de Figma requieren un asiento de edición.
 
