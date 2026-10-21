@@ -15,7 +15,10 @@ export function localAuthAdmin(config: LocalSeedConfig) {
       method,
       headers: {
         apikey: config.secretKey,
-        Authorization: `Bearer ${config.secretKey}`,
+        // Modern secret keys are not JWTs; the gateway resolves the apikey.
+        ...(config.secretKey.startsWith('sb_secret_')
+          ? {}
+          : { Authorization: `Bearer ${config.secretKey}` }),
         'Content-Type': 'application/json',
       },
       body: body ? JSON.stringify(body) : undefined,

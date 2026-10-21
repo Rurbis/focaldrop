@@ -154,7 +154,8 @@ query-string connection overrides and a non-administrator migration connection
 are rejected before connecting. Admin keys come from the ignored CLI env file
 (or `SUPABASE_SECRET_KEY`); the explicit key takes precedence, followed by the
 CLI's modern `SECRET_KEY`, with legacy `SERVICE_ROLE_KEY` only as a fallback
-(D121). Keys and tokens are never logged. These credentials
+(D121). Modern secrets are sent only in `apikey`; legacy JWTs also use the
+`Authorization` header. Keys and tokens are never logged. These credentials
 must never be reused in staging or production.
 
 ```sh
