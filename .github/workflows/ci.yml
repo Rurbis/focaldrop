@@ -28,11 +28,26 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      local-seed: ${{ steps.database-changes.outputs.changed }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history, so Turborepo can diff against TURBO_SCM_BASE.
           fetch-depth: 0
+
+      - name: Detect changes that need real Supabase
+        id: database-changes
+        env:
+          DIFF_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          DIFF_HEAD: ${{ github.sha }}
+        run: |
+          git diff --name-only "$DIFF_BASE" "$DIFF_HEAD" > "$RUNNER_TEMP/database-paths"
+          if grep -Eq '^(apps/api/|packages/shared/|infra/supabase/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|turbo\.json$|\.nvmrc$|tsconfig\.base\.json$|\.github/(workflows/ci\.yml$|actions/))' "$RUNNER_TEMP/database-paths"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: ./.github/actions/setup
 
@@ -62,7 +77,8 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/focaldrop_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/focaldrop_test
+      MIGRATIONS_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/focaldrop_test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -72,3 +88,47 @@ jobs:
 
       - name: Test and build
         run: pnpm exec turbo run test build --affected
+
+  local-seed:
+    # A real local Supabase instance catches Auth/role differences that a plain
+    # Postgres fixture cannot. No staging credentials or project are used.
+    needs: quality
+    if: needs.quality.outputs.local-seed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: development
+      MIGRATIONS_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - name: Start disposable local Supabase
+        run: |
+          if ! pnpm db:start > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            sed -E 's/(eyJ[A-Za-z0-9_.-]+|sb_secret_[A-Za-z0-9_-]+)/[redacted]/g' "$RUNNER_TEMP/supabase-start.log" | tail -n 40
+            exit 1
+          fi
+      - name: Capture local CLI credentials without printing them
+        run: pnpm exec supabase status --workdir infra --output env > infra/supabase/.env.local
+      - name: Migrate a fresh clone using the README command
+        run: |
+          test ! -d packages/shared/dist
+          pnpm db:migrate
+      - name: Seed with an obsolete shared build using the README command
+        run: |
+          printf 'export const obsolete = true;\n' > packages/shared/dist/index.js
+          pnpm db:seed
+          pnpm --filter @focaldrop/api db:verify-local
+      - name: Test integrations with the real non-superuser Supabase role
+        run: pnpm --filter @focaldrop/api test:integration
+      - name: Verify reset applies migrations and seeds again
+        run: |
+          if ! pnpm db:reset > "$RUNNER_TEMP/supabase-reset.log" 2>&1; then
+            sed -E 's/(eyJ[A-Za-z0-9_.-]+|sb_secret_[A-Za-z0-9_-]+)/[redacted]/g' "$RUNNER_TEMP/supabase-reset.log" | tail -n 40
+            exit 1
+          fi
+          pnpm --filter @focaldrop/api db:verify-local
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm db:stop
