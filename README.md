@@ -84,32 +84,44 @@ docs/             Decision log and design documents (Spanish)
 
 ## Getting started
 
-**Prerequisites:** Git, Node.js 24 (see `.nvmrc`) and pnpm 10.34.6.
+**Prerequisites:** Git, Node.js 24 (see `.nvmrc`), pnpm 10.34.6 and Docker Desktop with the Linux engine running.
 
 ```bash
 npm install -g pnpm@10.34.6
 git clone https://github.com/Rurbis/focaldrop.git
 cd focaldrop
-pnpm install
+pnpm install --frozen-lockfile
+```
+
+Follow the [local Supabase guide](infra/supabase/README.md) to start the stack and generate its ignored `infra/supabase/.env.local`. Copy `apps/api/.env.example` to `apps/api/.env` if that file does not exist; otherwise add its database settings without overwriting existing values. Then run:
+
+```bash
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
-The panel runs at http://localhost:3000/admin.
+The root `db:generate`, `db:migrate`, `db:seed` and `db:reset` commands build
+`@focaldrop/shared` before loading the database schema, including in a fresh clone.
 
-> **Local database coming soon.** Supabase runs locally with Docker through the Supabase CLI, with seed data for a demo agency. The setup steps land with issues #8 and #15.
+The panel runs at http://localhost:3000/admin and the API at http://localhost:3001/health. The local seed creates agency `demo`, domain `localhost` and owner `owner@focaldrop.test` with password `Focaldrop-local-only-2026!`. These synthetic credentials are for local Docker only; panel login is implemented in #18. See the [database guide](apps/api/README.md#local-demo-issue-15) for reset and integration tests.
 
 ## Commands
 
 Run from the repository root; Turborepo runs each task in every app and package that has it, building dependencies first.
 
-| Command                             | What it does                         |
-| ----------------------------------- | ------------------------------------ |
-| `pnpm dev`                          | Starts every app in development mode |
-| `pnpm build`                        | Builds every app and package         |
-| `pnpm lint`                         | ESLint, with type information        |
-| `pnpm typecheck`                    | TypeScript checks                    |
-| `pnpm test`                         | Test suites (Vitest)                 |
-| `pnpm format` / `pnpm format:check` | Prettier                             |
+| Command                             | What it does                                      |
+| ----------------------------------- | ------------------------------------------------- |
+| `pnpm dev`                          | Starts every app in development mode              |
+| `pnpm build`                        | Builds every app and package                      |
+| `pnpm lint`                         | ESLint, with type information                     |
+| `pnpm typecheck`                    | TypeScript checks                                 |
+| `pnpm test`                         | Test suites (Vitest)                              |
+| `pnpm db:start` / `pnpm db:stop`    | Local Supabase in Docker                          |
+| `pnpm db:migrate`                   | Apply versioned Drizzle migrations                |
+| `pnpm db:seed`                      | Create or reuse the local demo and owner          |
+| `pnpm db:reset`                     | Erase local Supabase data, migrate and seed again |
+| `pnpm format` / `pnpm format:check` | Prettier                                          |
 
 ## Contributing
 
