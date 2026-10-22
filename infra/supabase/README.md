@@ -103,8 +103,8 @@ no se deben copiar a staging, que usa su propia configuración (D121). Sus crede
   devuelve 503; Auth y Studio siguen funcionando. Solo Nest accederá a los datos de negocio.
 - `api.auto_expose_new_tables = false`: las tablas nuevas tampoco reciben permisos automáticos.
   Los permisos y RLS de capa 0 se implementan en la #11 (D60).
-- Las migraciones de aplicación se incorporarán en `apps/api/drizzle/` con la #11. La ejecución
-  de migraciones y seeds de Supabase está deshabilitada; el seed de la agencia demo es la #15.
+- Las migraciones de aplicación viven en `apps/api/drizzle/` (#11). La ejecución
+  de migraciones y seeds de Supabase está deshabilitada; el seed de la agencia demo lo ejecuta la API (#15).
 - Storage, Realtime, Edge Functions y Analytics están deshabilitados: esta configuración cubre
   Postgres, Auth, Studio y Mailpit. Los archivos irán a R2 y el Worker de ZIP a Cloudflare.
 
@@ -117,8 +117,17 @@ pnpm db:stop
 pnpm db:start
 ```
 
-`db:stop` conserva los datos para el siguiente arranque. El proyecto no ofrece todavía comandos
-de migración, seed ni reset; se incorporan en sus respectivas issues. No añadas `--no-backup`
+`db:stop` conserva los datos para el siguiente arranque. Las migraciones y el seed
+se gestionan con Drizzle y los scripts de la API. Después de
+copiar `apps/api/.env.example` a `apps/api/.env` (solo si no existe; si ya existe,
+añade las variables de BD nuevas sin sobrescribir las demás), ejecuta desde
+la raíz `pnpm db:migrate` y `pnpm db:seed`. La agencia `demo`, `localhost` y el owner
+local quedan listos; las credenciales sintéticas están en la
+[guía de la API](../../apps/api/README.md#local-demo-issue-15).
+
+`pnpm db:reset` borra todos los datos de esta pila local, incluidos los usuarios
+de Auth, y vuelve a migrar y sembrar. Solo acepta la configuración local y usa
+`supabase db reset --local`; no apunta al proyecto de staging. No añadas `--no-backup`
 al comando habitual de parada, porque descarta los datos locales.
 
 ## Comprobación en las dos máquinas
