@@ -1,11 +1,95 @@
 @import 'tailwindcss';
 
 /*
- * Neutral platform styles (D39). The admin panel never uses an agency theme;
- * agency themes arrive with the public site (milestone 2) as CSS variables.
+ * Focal Drop tokens (D135, D136): the panel's palette, type and shape.
+ *
+ * Each semantic variable holds its light and dark value with light-dark(), so
+ * components never name a mode: the color scheme picks, and data-theme="light"
+ * or "dark" forces one (the /admin/ui showcase uses both). The root stays light
+ * until the panel screens use these tokens (A3, #53); then it becomes
+ * "light dark" and follows the system.
+ * The build compiles light-dark() into var() switches, and a custom property
+ * resolves those where it is declared, so every element that forces a theme
+ * declares the tokens again; otherwise it would inherit the system's values.
+ * Contrast is checked by src/styles/tokens.test.ts. Agency themes (milestone 2)
+ * bring their own variables and never reuse these (D39).
  */
+:root {
+  color-scheme: light;
+}
+
+:root,
+[data-theme] {
+  --fd-paper: light-dark(#f4f1eb, #141312);
+  --fd-surface: light-dark(#fbf9f5, #1c1a18);
+  --fd-raised: light-dark(#e9e3da, #2a2723);
+  --fd-ink: light-dark(#1b1a18, #ede6dc);
+  --fd-ink-muted: light-dark(#5e5850, #a79f94);
+  --fd-field: light-dark(#8c847a, #7a7268);
+  --fd-line: light-dark(#ddd6cb, #34302b);
+  --fd-accent: light-dark(#1f4e8c, #8db4e6);
+  --fd-on-accent: light-dark(#ffffff, #141312);
+  --fd-accent-soft: light-dark(#dce6f2, #22344a);
+  --fd-danger: light-dark(#a8322d, #f2a39b);
+  --fd-on-danger: light-dark(#ffffff, #141312);
+  --fd-danger-soft: light-dark(#f6dcd8, #4a2420);
+  --fd-success: light-dark(#2f6b43, #8fcba2);
+  --fd-success-soft: light-dark(#dcebdf, #1e3a27);
+  --fd-warning: light-dark(#7a5200, #e7b95e);
+  --fd-warning-soft: light-dark(#f3e4c4, #3d3016);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--fd-paper);
+  --color-surface: var(--fd-surface);
+  --color-raised: var(--fd-raised);
+  --color-ink: var(--fd-ink);
+  --color-ink-muted: var(--fd-ink-muted);
+  --color-field: var(--fd-field);
+  --color-line: var(--fd-line);
+  --color-accent: var(--fd-accent);
+  --color-on-accent: var(--fd-on-accent);
+  --color-accent-soft: var(--fd-accent-soft);
+  --color-danger: var(--fd-danger);
+  --color-on-danger: var(--fd-on-danger);
+  --color-danger-soft: var(--fd-danger-soft);
+  --color-success: var(--fd-success);
+  --color-success-soft: var(--fd-success-soft);
+  --color-warning: var(--fd-warning);
+  --color-warning-soft: var(--fd-warning-soft);
+
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Five sizes, no more (design plan §4). */
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.45;
+  --text-ui: 0.9375rem;
+  --text-ui--line-height: 1.45;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.3;
+  --text-page: 1.75rem;
+  --text-page--line-height: 1.15;
+
+  --radius-ui: 4px;
+}
+
 @layer base {
   body {
-    @apply bg-neutral-50 text-neutral-900 antialiased;
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--fd-accent);
+    outline-offset: 2px;
   }
 }
