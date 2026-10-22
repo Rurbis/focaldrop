@@ -5,3 +5,10 @@ packages:
 # Fail the install when Node or pnpm do not match "engines" in package.json,
 # so nobody works with a different version without noticing (D114).
 engineStrict: true
+
+# drizzle-kit 0.31 still declares @esbuild-kit (abandoned, merged into tsx),
+# which pins esbuild 0.18 with the dev-server advisory GHSA-67mh-4wv8-2f99
+# (Dependabot #18). drizzle-kit never loads it, so it gets the esbuild that
+# drizzle-kit itself uses. Remove this once drizzle-kit drops @esbuild-kit.
+overrides:
+  '@esbuild-kit/core-utils>esbuild': 0.25.12
