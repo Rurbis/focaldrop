@@ -23,4 +23,10 @@
   "observability": {
     "enabled": true,
   },
+  // Worker Previews (pr-<number>, D137) require this block. Wrangler copies the
+  // settings above into them except service bindings: from a Preview, a
+  // service binding would reach the staging Worker, not the Preview itself.
+  // OpenNext only needs WORKER_SELF_REFERENCE for cache revalidation, which
+  // arrives with #19 and #20.
+  "previews": {},
 }

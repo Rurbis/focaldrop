@@ -364,6 +364,7 @@ Revisión integral de las Partes A y B con la pregunta "¿esto lo pueden constru
 - **Hito 0, al arrancar:** elegir el día fijo de la sincronización semanal; confirmar quién es el contacto con la agencia (S8); el compañero confirma si trabaja en Windows nativo (S9).
 - ✅ Node 24.20 instalado en la máquina del dueño del repo (reemplazó a la 22.14). Docker Desktop 4.95 con WSL2 instalado el 2026-10-15; Windows pidió reiniciar después de activar WSL y Virtual Machine Platform.
 - **Spikes de la Fase 3** (detalle en la Parte A, §5): hito 0: esqueleto Next + Nest (S-0) y front en Cloudflare Workers (S-4). Hito 1: subida con Uppy (S-5), previews (S-1, solo JPG/MP4 salvo que la agencia entregue más formatos) y ZIP etapa 1 (S-2). Diferido: Guardar en Fotos (S-3).
+- **#22, pendientes de cuentas (2026-10-22):** el token `github-deploy-web` de Cloudflare (*Workers Scripts: Edit* y *Account Settings: Read*) **vence el 2027-10-22**: renovarlo antes y actualizar el secreto `CLOUDFLARE_API_TOKEN` en los Environments `staging` y `preview`. **Supabase staging (plan Free) se pausa tras ~7 días sin actividad**; el 2026-10-22 estaba pausado. Al mezclar el #49: reanudarlo, cargar `SUPABASE_PUBLISHABLE_KEY` en ambos Environments y poner la URL de staging como *Site URL*. Antes de la demo (#27), decidir cómo evitar la pausa (actividad periódica o plan Pro).
 
 ## 8. Supuestos vigentes
 
