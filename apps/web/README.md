@@ -17,3 +17,17 @@ Next.js 16 (App Router) front of Focal Drop: the admin panel today, and the publ
 | `pnpm --filter @focaldrop/web build`     | Production build                                  |
 | `pnpm --filter @focaldrop/web lint`      | ESLint with the Next.js and React hooks rules     |
 | `pnpm --filter @focaldrop/web typecheck` | Generates the route types and runs `tsc --noEmit` |
+
+The `cf:*` scripts build and deploy the Cloudflare Worker. They work only on Linux (CI, or WSL on Windows):
+
+| Script       | What it does                                                       |
+| ------------ | ------------------------------------------------------------------ |
+| `cf:build`   | Builds the Worker with OpenNext into `.open-next/`                 |
+| `cf:size`    | Bundles it without deploying and prints its compressed size        |
+| `cf:local`   | Runs the built Worker in the local Workers runtime                 |
+| `cf:deploy`  | Deploys the staging Worker (CI only, on merges to `main`)          |
+| `cf:preview` | Publishes a Worker Preview (CI only, `--name pr-<number>` on a PR) |
+
+## Deployment
+
+[`deploy-web.yml`](../../.github/workflows/deploy-web.yml) builds the Worker on every pull request and fails if it grows past 2.75 MiB compressed (the Workers Free limit is 3 MiB). Pull requests from this repo publish the Preview `pr-<number>`, deleted when the pull request closes; merges to `main` deploy staging (D137). Public variables such as the Supabase URL come from the `staging` and `preview` GitHub Environments at build time.

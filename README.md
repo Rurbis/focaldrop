@@ -123,6 +123,10 @@ Run from the repository root; Turborepo runs each task in every app and package 
 | `pnpm db:reset`                     | Erase local Supabase data, migrate and seed again |
 | `pnpm format` / `pnpm format:check` | Prettier                                          |
 
+## Deployments
+
+The front deploys to Cloudflare Workers from GitHub Actions ([`deploy-web.yml`](.github/workflows/deploy-web.yml)). Every pull request that touches it gets its own Preview (`pr-<number>`), linked from the pull request, and every merge to `main` deploys staging. OpenNext only builds a working Worker on Linux, so the Worker is always built in CI (D129, D137); on Windows, use `pnpm dev`.
+
 ## Contributing
 
 - **Short-lived branches** from `main` (`feat/`, `fix/`, `chore/`, `docs/`, `ci/`, `spike/`) and **Conventional Commits** with a scope: `feat(web): add login page`.

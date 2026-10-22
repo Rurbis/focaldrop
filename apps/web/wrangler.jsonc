@@ -1,0 +1,26 @@
+// Cloudflare Workers configuration of the front (D83, D129, D137).
+// OpenNext builds the Worker into .open-next/; deploy-web.yml deploys it.
+// This is the staging Worker; production arrives with milestone 3.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "focaldrop-web-staging",
+  "main": ".open-next/worker.js",
+  // 2025-08-16 or later is required by the Sentry SDK (https.request).
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  // OpenNext calls the Worker itself for some internal requests.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "focaldrop-web-staging",
+    },
+  ],
+  // Workers Logs: errors and the CPU time of every request (S-4 measures it).
+  "observability": {
+    "enabled": true,
+  },
+}
