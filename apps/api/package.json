@@ -13,12 +13,18 @@
     "start:prod": "node dist/main.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm run test:unit && pnpm run test:e2e",
+    "test": "pnpm run test:unit && pnpm run test:e2e && pnpm run test:integration",
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "test:integration": "vitest run --config ./vitest.config.integration.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.cli.ts",
+    "db:seed": "tsx src/db/seed.cli.ts",
+    "db:reset": "tsx src/db/reset.cli.ts",
+    "db:verify-local": "tsx test/local-seed.smoke.ts"
   },
   "dependencies": {
     "@focaldrop/shared": "workspace:*",
@@ -26,8 +32,11 @@
     "@nestjs/core": "12.1.2",
     "@nestjs/platform-express": "12.1.2",
     "@sentry/nestjs": "11.8.0",
+    "drizzle-orm": "0.45.3",
+    "postgres": "3.4.9",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.1",
+    "uuid": "14.0.2",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -38,8 +47,10 @@
     "@types/node": "24.19.0",
     "@types/supertest": "7.2.1",
     "@vitest/coverage-v8": "4.1.11",
+    "drizzle-kit": "0.31.11",
     "source-map-support": "0.5.21",
     "supertest": "7.3.1",
+    "tsx": "4.23.15",
     "vitest": "4.1.11"
   }
 }

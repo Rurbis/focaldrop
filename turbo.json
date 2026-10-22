@@ -25,7 +25,8 @@
       "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "env": ["CI", "DATABASE_URL", "TEST_DATABASE_URL", "MIGRATIONS_DATABASE_URL"]
     },
     "dev": {
       "dependsOn": ["^build"],
