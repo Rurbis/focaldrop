@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 import { Dialog, DialogTrigger, Heading, Modal, ModalOverlay } from 'react-aria-components';
 
 import { Button, type ButtonProps } from './button';
@@ -21,6 +21,8 @@ export type ConfirmDialogProps = {
 /**
  * Asks before an important action. Focus starts on Cancel, so pressing Enter
  * by habit never confirms a destructive action; Escape and the backdrop close it.
+ * The body is the dialog's description, so a screen reader announces the
+ * consequences together with the title when it opens.
  */
 export function ConfirmDialog({
   trigger,
@@ -32,6 +34,8 @@ export function ConfirmDialog({
   tone = 'default',
   onConfirm,
 }: ConfirmDialogProps) {
+  const descriptionId = useId();
+
   return (
     <DialogTrigger>
       <Button variant={triggerVariant}>{trigger}</Button>
@@ -40,13 +44,19 @@ export function ConfirmDialog({
         className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
       >
         <Modal className="w-full max-w-md rounded-ui bg-surface p-6 text-ink shadow-xl">
-          <Dialog role="alertdialog" className="flex flex-col gap-4 outline-none">
+          <Dialog
+            role="alertdialog"
+            aria-describedby={descriptionId}
+            className="flex flex-col gap-4 outline-none"
+          >
             {({ close }) => (
               <>
                 <Heading slot="title" className="text-title font-semibold">
                   {title}
                 </Heading>
-                <div className="text-body text-ink">{children}</div>
+                <div id={descriptionId} className="text-body text-ink">
+                  {children}
+                </div>
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button variant="secondary" autoFocus onPress={close}>
                     {cancelLabel}

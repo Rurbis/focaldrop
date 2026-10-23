@@ -39,6 +39,11 @@ export function Menu<T extends object>({
   );
 }
 
+/**
+ * One action of the menu. Hover and keyboard both tint the item; keyboard focus
+ * also draws an inset accent ring, because the tint alone is too faint to see
+ * (WCAG 2.4.7). The ring sits inside the item so it never covers its neighbors.
+ */
 export function MenuItem({
   tone = 'default',
   ...props
@@ -46,7 +51,7 @@ export function MenuItem({
   return (
     <AriaMenuItem
       {...props}
-      className={`flex min-h-10 cursor-pointer items-center rounded-ui px-3 text-ui outline-none data-focused:bg-raised ${
+      className={`flex min-h-10 cursor-pointer items-center rounded-ui px-3 text-ui outline-none data-focused:bg-raised data-focus-visible:outline-2 data-focus-visible:-outline-offset-2 data-focus-visible:outline-accent data-focus-visible:outline-solid ${
         tone === 'danger' ? 'text-danger' : 'text-ink'
       }`}
     />

@@ -24,7 +24,8 @@ function contrast(a: string, b: string): number {
   return (high + 0.05) / (low + 0.05);
 }
 
-// [foreground, background, minimum]: 4.5 for text, 3 for field borders.
+// [foreground, background, minimum]: 4.5 for text, 3 for field borders and
+// focus indicators (WCAG 1.4.11).
 const pairs: [string, string, number][] = [
   ['ink', 'paper', 4.5],
   ['ink', 'surface', 4.5],
@@ -44,6 +45,8 @@ const pairs: [string, string, number][] = [
   ['warning', 'warning-soft', 4.5],
   ['field', 'surface', 3],
   ['field', 'paper', 3],
+  // The focus ring of a menu item, over the item's focused tint and the menu.
+  ['accent', 'raised', 3],
 ];
 
 describe('design tokens', () => {
