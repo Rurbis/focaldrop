@@ -7,6 +7,7 @@ import type { App } from 'supertest/types.js';
 import { z } from 'zod';
 
 import { AppModule } from '../src/app.module.js';
+import { DatabaseService } from '../src/db/database.module.js';
 
 describe('Health endpoint (e2e)', () => {
   let app: INestApplication<App>;
@@ -14,7 +15,10 @@ describe('Health endpoint (e2e)', () => {
   beforeEach(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(DatabaseService)
+      .useValue({})
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();

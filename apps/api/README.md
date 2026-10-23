@@ -37,14 +37,16 @@ pnpm exec turbo run dev --filter=@focaldrop/api
 ```
 
 The API loads `apps/api/.env` when present. Variables supplied by the environment
-take precedence. Zod validates the configuration before Nest starts:
+take precedence. Zod validates the configuration during startup:
 
-| Variable             | Required | Values / default                                                |
-| -------------------- | -------- | --------------------------------------------------------------- |
-| `NODE_ENV`           | Yes      | `development`, `test` or `production`                           |
-| `PORT`               | No       | Integer from 1 to 65535; defaults to `3001`                     |
-| `SENTRY_DSN`         | No       | HTTP(S) DSN for the existing API project; empty disables Sentry |
-| `SENTRY_ENVIRONMENT` | No       | Deployment label, e.g. `staging`; defaults to `NODE_ENV`        |
+| Variable              | Required | Values / default                                                                  |
+| --------------------- | -------- | --------------------------------------------------------------------------------- |
+| `NODE_ENV`            | Yes      | `development`, `test` or `production`                                             |
+| `PORT`                | No       | Integer from 1 to 65535; defaults to `3001`                                       |
+| `SENTRY_DSN`          | No       | HTTP(S) DSN for the existing API project; empty disables Sentry                   |
+| `SENTRY_ENVIRONMENT`  | No       | Deployment label, e.g. `staging`; defaults to `NODE_ENV`                          |
+| `DATABASE_URL`        | Yes      | PostgreSQL runtime connection using `app_api`; never the migrations administrator |
+| `DEFAULT_AGENCY_SLUG` | No       | Valid agency slug used for unknown/missing hosts outside production               |
 
 Invalid configuration stops startup and identifies the affected variable.
 Restart the API after changing environment variables.
@@ -121,6 +123,74 @@ pnpm --filter @focaldrop/api test:integration
 `createDatabase()` uses `prepare: false` for Supabase's transaction pooler. It
 returns a typed Drizzle database and the underlying client, which consumers must
 close on shutdown. The health endpoint remains independent of database access.
+
+## Tenant resolution (issue #13)
+
+Next forwards the original site's host in `X-Tenant-Host`; the API's own `Host`
+header is not used to select an agency. For example:
+
+```powershell
+Invoke-RestMethod -Uri 'http://localhost:3001/public/tenant' -Headers @{
+  'X-Tenant-Host' = 'LOCALHOST:3000'
+}
+```
+
+After the local migration/seed, this returns the public `demo` agency:
+
+```json
+{
+  "id": "<agency UUID>",
+  "slug": "demo",
+  "name": "Demo agency",
+  "status": "active",
+  "timezone": "America/Mexico_City",
+  "locale": "es-MX",
+  "currency": "MXN"
+}
+```
+
+`PublicTenantSchema` in `@focaldrop/shared` is the response contract. Notification
+email/preferences, retention and account-policy settings are not exposed.
+
+- DNS names/IPv4 are lowercased, a port and a final DNS dot are removed.
+  Malformed values, URLs, lists/duplicate headers and literal IPv6 are rejected
+  with 400. Stored hostnames currently exclude colons.
+- A registered host resolves through `agency_domains`. Unknown/missing hosts can
+  use `DEFAULT_AGENCY_SLUG` only when `NODE_ENV` is `development` or `test`.
+  Without an available default they return 404. Suspended agencies return 404.
+- `NODE_ENV=production` always disables fallback, including staging running a
+  production build. Register its real hostname; `SENTRY_ENVIRONMENT` does not
+  change tenant rules. Malformed headers never fall back.
+- Successful resolutions are cached per normalized host for five minutes in
+  each API process, with at most 1,000 entries (oldest inserted entry evicted).
+  No external cache is required. Changes/suspensions may take up to five minutes
+  to appear on an instance. Misses and database failures are not cached.
+- HTTP responses on tenant routes, including errors, use `Cache-Control: no-store`
+  to prevent shared caches mixing hosts. Next's explicit tagged application
+  cache belongs to #19.
+
+`TenantMiddleware` runs on `/public` and `/admin`, including nested routes,
+before guards/controllers. It resolves the agency, then opens an isolated
+`nestjs-cls` context for the rest of that request. Other modules can import
+`TenancyModule` and inject `TenantContext`; `get()` fails explicitly if no
+context exists. Cached public objects are frozen so one request cannot mutate
+another request's agency.
+
+The host selects public context, not authorization. JWT authentication and
+membership/role checks remain in #12 and #14; callers must never treat a supplied
+tenant host as permission to access private data. These discovery queries are
+the exception to requiring an already-known `agency_id`.
+
+`DatabaseModule` owns one runtime pool per process and closes it during Nest
+shutdown. `GET /health` does not resolve a tenant or query PostgreSQL. The API
+still requires a valid runtime connection URL at startup, but the driver connects
+lazily, so health remains available during a database outage.
+
+Tests cover normalization, fallback, TTL/eviction, public projection, failures
+and deterministically interleaved requests. PostgreSQL integrations exercise the
+real repository and HTTP endpoint with `SET LOCAL ROLE app_api`; temporary
+membership grants roll back with their transactions. Existing health/Sentry
+e2e tests replace the pool and need no running database.
 
 ## Local demo (issue #15)
 
