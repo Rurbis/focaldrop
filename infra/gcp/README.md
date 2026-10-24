@@ -71,17 +71,24 @@ gcloud billing projects describe "$PROJECT_ID" --format='value(billingEnabled)'
 
 The deploy workflow ([`deploy-api.yml`](../../.github/workflows/deploy-api.yml)) needs three things that only a person with the platform account can do, once per environment. Run them in Cloud Shell after `bootstrap.sh`.
 
-**1. The runtime role in Supabase.** Migration `0001` creates `app_api` without a password, and passwords never go through Git. Create it first, with a password generated in Bitwarden (32 letters and digits, so it needs no escaping in the URL); the migration accepts an existing role as long as it has no administrative privileges. In the Supabase SQL editor of the staging project:
-
-```sql
-CREATE ROLE app_api LOGIN PASSWORD '<password from Bitwarden>'
-  NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
-```
-
-**2. The secret's value.** The API connects through the transaction pooler (port 6543, D63) as `app_api.<project ref>`. Copy the pooler host from Supabase (_Connect_ > _Transaction pooler_) and add the URL from standard input, so it never lands in the shell history: run the command, paste the URL, press Enter and then Ctrl+D.
+**1. The runtime role in Supabase.** Migration `0001` creates `app_api` without a password, and passwords never go through Git. Create it first; the migration accepts an existing role as long as it has no administrative privileges. Generate its password in Bitwarden (32 letters and digits, so it needs no escaping in the URL). Connect with `psql` from Cloud Shell as `postgres`, through the session pooler (host in Supabase, _Connect_ > _Session pooler_); it asks for the database password:
 
 ```bash
-gcloud secrets versions add api-database-url-staging --data-file=-
+psql "host=<pooler host> port=5432 dbname=postgres user=postgres.<project ref> sslmode=require"
+```
+
+```sql
+CREATE ROLE app_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+\password app_api
+```
+
+`\password` asks for the new password twice and hashes it in `psql` before sending it, so the plain password never reaches the server's logs or the SQL editor's history.
+
+**2. The secret's value.** The API connects through the transaction pooler (same host, port 6543, D63) as `app_api.<project ref>`. Keep the full URL in Bitwarden next to the password. `read -rs` takes it without echoing it or saving it in the shell history, and `printf '%s'` sends it without a trailing newline, which would end up inside `DATABASE_URL`:
+
+```bash
+read -rs DB_URL   # paste the URL and press Enter
+printf '%s' "$DB_URL" | gcloud secrets versions add api-database-url-staging --data-file=- && unset DB_URL
 ```
 
 The deploy reads the `latest` version when each instance starts. After rotating the password, add a new version and deploy again.

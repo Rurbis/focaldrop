@@ -9,7 +9,7 @@ Issue: #16 · PR: #69 · Autor: Rubén
   - **Orden del workflow:** primero compila la imagen, y solo después sube, migra y despliega, para no tocar la BD si el build falla. La migración sigue antes del deploy (D106). La imagen se compila antes de autenticarse con Google, porque la acción de autenticación escribe un archivo de credenciales en el *workspace*.
   - **Secretos:** `DATABASE_URL` vive en Secret Manager (`api-database-url-staging`) y solo la cuenta de la API la lee. Como variable de entorno se vería en la configuración del servicio. Cambia lo que decía D105 ("si crecen, se migra a Secret Manager"): se migra desde el primer secreto.
   - **Servicio público:** el deployer tiene `run.developer`, que no puede quitar la verificación de invocador (requiere `run.services.setIamPolicy`, que viene en `run.admin`), y la organización rechaza `allUsers` (D125). Por eso el servicio se crea una vez a mano, público y con la imagen de ejemplo de Google; cada deploy cambia la imagen y conserva el ajuste. El deployer se queda con el mínimo de permisos.
-  - **Rol `app_api` en staging:** la migración `0001` lo crea sin contraseña. Se crea antes, a mano, con contraseña de Bitwarden; la migración acepta un rol existente sin privilegios administrativos.
+  - **Rol `app_api` en staging:** la migración `0001` lo crea sin contraseña. Se crea antes, a mano, desde `psql` en Cloud Shell, y la contraseña de Bitwarden se pone con `\password`, que la cifra antes de enviarla: nunca queda en texto plano en los logs ni en el historial del SQL editor. La migración acepta un rol existente sin privilegios administrativos. La URL llega al secreto con `read -rs` y `printf`, sin pasar por el historial ni dejar un salto de línea al final.
 
 ## Historial
 
@@ -21,7 +21,7 @@ Issue: #16 · PR: #69 · Autor: Rubén
 
 ## Pendientes
 
-- **Antes de mezclar (Rubén, una vez):** correr `bootstrap.sh` de nuevo (también redespliega el *billing guard* con el `uuid` del #41), crear `app_api` en Supabase, cargar el valor del secreto y crear el servicio público (`infra/gcp/README.md`).
+- ~~**Antes de mezclar (Rubén, una vez):** correr `bootstrap.sh` de nuevo, crear `app_api` en Supabase, cargar el valor del secreto y crear el servicio público.~~ Hecho el 2026-10-24: el servicio responde 200 con la imagen de ejemplo en https://focaldrop-api-staging-664538226545.us-east4.run.app.
 - **Opcional:** la variable `API_SENTRY_DSN` en el Environment `staging` para que los errores de la API lleguen a Sentry.
 - **UptimeRobot:** monitores para el front y la API de staging (D123 los dejaba para cuando existiera staging).
 - **Para F1 (#13):** cuando el fallback de staging use una variable de entorno, agregarla a `--set-env-vars` en `deploy-api.yml`.
