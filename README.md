@@ -136,6 +136,7 @@ The front deploys to Cloudflare Workers from GitHub Actions ([`deploy-web.yml`](
 
 - **Staging:** https://focaldrop-web-staging.focaldrop.workers.dev
 - **Pull request Previews:** `https://pr-<number>-focaldrop-web-staging.focaldrop.workers.dev`
+- **Supabase staging** is on the Free plan, which pauses a project after a week without database activity. [`keep-supabase-awake.yml`](.github/workflows/keep-supabase-awake.yml) runs one query every day to keep it awake.
 
 ## Contributing
 
