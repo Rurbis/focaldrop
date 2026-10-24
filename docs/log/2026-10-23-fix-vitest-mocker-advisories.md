@@ -1,6 +1,6 @@
 # fix(deps): bump vitest to 4.1.12 for the mocker advisories
 
-Issue: — · PR: (este) · Autor: Rubén
+Issue: — · PR: #66 · Autor: Rubén
 
 ## Historial
 
