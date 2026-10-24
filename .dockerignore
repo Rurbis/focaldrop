@@ -1,0 +1,16 @@
+# Build context for apps/api/Dockerfile (the repo root). Keeps local installs,
+# builds and environment files out of the image.
+.git
+**/node_modules
+**/dist
+**/.next
+**/.open-next
+**/.turbo
+**/.wrangler
+**/coverage
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+# Written by google-github-actions/auth in CI.
+gha-creds-*.json

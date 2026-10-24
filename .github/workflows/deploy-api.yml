@@ -1,0 +1,98 @@
+# Deploys the API to Cloud Run staging (Phase 2 §6.1, #16) on every push to
+# main that touches it, or on a manual run.
+# Order: build the image first (no side effects), then push it, migrate the
+# staging database and deploy. Migrations are backward compatible
+# (expand/contract, Phase 2 §3), so the running revision keeps working while
+# the new one rolls out. Before the first run, follow "Before the first API
+# deploy" in infra/gcp/README.md.
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/api/**
+      - packages/shared/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .dockerignore
+      - .github/workflows/deploy-api.yml
+      - .github/actions/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+  HUSKY: '0'
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    # One deploy at a time, and never cancel one halfway (it may be migrating).
+    concurrency:
+      group: deploy-api-staging
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write # Workload Identity Federation: no keys (D105).
+    env:
+      IMAGE: ${{ vars.GCP_ARTIFACT_REPOSITORY }}/api:${{ github.sha }}
+      REGION: ${{ vars.GCP_REGION }}
+      SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
+      RUNTIME_SA: ${{ vars.GCP_RUNTIME_SA }}
+      DB_SECRET: api-database-url-staging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Before authenticating: the auth step writes a credentials file into the
+      # workspace, which must never reach the build context.
+      - name: Build the image
+        run: docker build --file apps/api/Dockerfile --tag "$IMAGE" .
+
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - name: Push the image
+        run: |
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+          docker push "$IMAGE"
+
+      - uses: ./.github/actions/setup
+
+      - name: Migrate the staging database
+        env:
+          MIGRATIONS_DATABASE_URL: ${{ secrets.MIGRATIONS_DATABASE_URL }}
+        run: pnpm db:migrate
+
+      # max-instances bounds the cost (D87); no min-instances, so it scales to
+      # zero. The service stays public from its one-time creation (README).
+      # DATABASE_URL comes from Secret Manager, read when each instance starts.
+      - name: Deploy to Cloud Run
+        id: deploy
+        env:
+          SENTRY_DSN: ${{ vars.API_SENTRY_DSN }}
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image="$IMAGE" \
+            --region="$REGION" \
+            --service-account="$RUNTIME_SA" \
+            --max-instances=2 \
+            --set-env-vars="NODE_ENV=production,SENTRY_ENVIRONMENT=staging,SENTRY_DSN=${SENTRY_DSN}" \
+            --set-secrets="DATABASE_URL=${DB_SECRET}:latest" \
+            --quiet
+          url=$(gcloud run services describe "$SERVICE" --region="$REGION" --format='value(status.url)')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$URL/health"

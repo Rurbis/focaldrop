@@ -18,6 +18,7 @@ The project lives in the organization Google created with the billing account. N
 | Workload Identity Federation: pool `github`, provider `github-actions` | GitHub signs a short-lived token saying which repository a workflow belongs to; Google verifies it and grants temporary access. There is no long-lived key to leak (D105).                                                                                          |
 | Billing guard: topic `billing-alerts` and function `billing-guard`     | Turns the budget into a hard cap. When a budget notification reports a cost above the budget, the function unlinks the billing account, which stops every service in the project. Its account can only manage billing on this project and read the billing account. |
 | `function-builder` service account                                     | Identity Cloud Build uses to build the billing guard (`cloudbuild.builds.builder`).                                                                                                                                                                                 |
+| Secret Manager secret `api-database-url-staging`                       | The API's `DATABASE_URL` in staging. Only the runtime account can read it; the deploy references it by name. The script creates it empty: the value is added by hand (below).                                                                                       |
 
 **Access is granted by immutable IDs.** Repository `1414983088` of owner `263442215` instead of `Rurbis/focaldrop`: names can be renamed (this repository was `darkroom`) or reused after a deletion, IDs cannot.
 
@@ -64,4 +65,34 @@ gcloud billing projects describe "$PROJECT_ID" --format='value(billingEnabled)'
 ## Not here
 
 - **Billing and budget** are set in the console. After the script runs, connect the budget to the `billing-alerts` topic (_Manage notifications_).
-- **The Cloud Run service** is created by the first deploy (issue #16). Making the API public (`--no-invoker-iam-check`) is a one-time manual step there, so the deployer never needs that permission.
+- **The value of `DATABASE_URL`** and **the public Cloud Run service**: one-time steps by hand, below.
+
+## Before the first API deploy (issue #16)
+
+The deploy workflow ([`deploy-api.yml`](../../.github/workflows/deploy-api.yml)) needs three things that only a person with the platform account can do, once per environment. Run them in Cloud Shell after `bootstrap.sh`.
+
+**1. The runtime role in Supabase.** Migration `0001` creates `app_api` without a password, and passwords never go through Git. Create it first, with a password generated in Bitwarden (32 letters and digits, so it needs no escaping in the URL); the migration accepts an existing role as long as it has no administrative privileges. In the Supabase SQL editor of the staging project:
+
+```sql
+CREATE ROLE app_api LOGIN PASSWORD '<password from Bitwarden>'
+  NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+```
+
+**2. The secret's value.** The API connects through the transaction pooler (port 6543, D63) as `app_api.<project ref>`. Copy the pooler host from Supabase (_Connect_ > _Transaction pooler_) and add the URL from standard input, so it never lands in the shell history: run the command, paste the URL, press Enter and then Ctrl+D.
+
+```bash
+gcloud secrets versions add api-database-url-staging --data-file=-
+```
+
+The deploy reads the `latest` version when each instance starts. After rotating the password, add a new version and deploy again.
+
+**3. The public service.** The deployer can deploy (`run.developer`) but not change who may call a service, and in this organization `allUsers` is rejected (domain restricted sharing). So the service is created once, public, with Google's sample image; every deploy afterwards replaces the image and keeps the setting:
+
+```bash
+gcloud run deploy focaldrop-api-staging \
+  --image=us-docker.pkg.dev/cloudrun/container/hello \
+  --region=us-east4 \
+  --service-account=focaldrop-api-runtime@focaldrop.iam.gserviceaccount.com \
+  --max-instances=2 \
+  --no-invoker-iam-check
+```

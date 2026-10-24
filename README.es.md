@@ -132,6 +132,8 @@ Se corren desde la raíz del repo. Turborepo ejecuta cada tarea en las apps y pa
 
 ## Despliegues
 
+La API se despliega a Cloud Run desde GitHub Actions ([`deploy-api.yml`](.github/workflows/deploy-api.yml)). Cada mezcla a `main` que la toca compila la imagen, migra la BD de staging y despliega: https://focaldrop-api-staging-664538226545.us-east4.run.app/health. La configuración única está en [infra/gcp/README.md](infra/gcp/README.md).
+
 El front se despliega a Cloudflare Workers desde GitHub Actions ([`deploy-web.yml`](.github/workflows/deploy-web.yml)). Cada PR que lo toca recibe su propia preview (`pr-<número>`), enlazada desde el PR, y cada mezcla a `main` despliega staging. OpenNext solo genera un Worker que funciona en Linux, así que siempre se compila en la CI (D129, D137); en Windows se usa `pnpm dev`.
 
 - **Staging:** https://focaldrop-web-staging.focaldrop.workers.dev
