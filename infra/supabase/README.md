@@ -81,6 +81,10 @@ local_env="$(pnpm exec supabase status --workdir infra --output env)" &&
 unset local_env
 ```
 
+En los dos casos, la CLI puede imprimir `Stopped services: [...]` y un aviso de que `INBUCKET_URL`
+está obsoleta. No son errores: son los servicios que `config.toml` deja apagados a propósito y un
+alias viejo de Mailpit. El archivo se genera bien.
+
 `set -C` impide sobrescribir un archivo existente. Si ya tienes `infra/supabase/.env.local`, combina
 las variables necesarias conservando las demás. Si guardaste antes las credenciales de Supabase en
 `.env.local` de la raíz, conserva ese archivo y traslada solo las variables de la CLI a esta carpeta.

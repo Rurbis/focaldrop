@@ -93,7 +93,14 @@ cd focaldrop
 pnpm install --frozen-lockfile
 ```
 
-Follow the [local Supabase guide](infra/supabase/README.md) to start the stack and generate its ignored `infra/supabase/.env.local`. Copy `apps/api/.env.example` to `apps/api/.env` if that file does not exist; otherwise add its database settings without overwriting existing values. Then run:
+pnpm may end with a box saying it ignored the build scripts of `esbuild`. That is expected: nothing in the repo needs them.
+
+Follow the [local Supabase guide](infra/supabase/README.md) to start the stack and generate its ignored `infra/supabase/.env.local`. Copy `apps/api/.env.example` to `apps/api/.env` if that file does not exist; otherwise add its database settings without overwriting existing values. The example values already point to the local stack:
+
+- Bash: `cp -n apps/api/.env.example apps/api/.env`
+- PowerShell: `if (-not (Test-Path apps/api/.env)) { Copy-Item apps/api/.env.example apps/api/.env }`
+
+Then run:
 
 ```bash
 pnpm db:migrate

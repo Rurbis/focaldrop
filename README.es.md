@@ -93,7 +93,14 @@ cd focaldrop
 pnpm install --frozen-lockfile
 ```
 
-Sigue la [guía de Supabase local](infra/supabase/README.md) para arrancar la pila y generar `infra/supabase/.env.local`, ignorado por Git. Copia `apps/api/.env.example` a `apps/api/.env` si todavía no existe; si ya existe, añade las variables de BD sin sobrescribir los valores actuales. Después ejecuta:
+Puede que pnpm termine con un recuadro que dice que ignoró los scripts de compilación de `esbuild`. Es normal: nada en el repo los necesita.
+
+Sigue la [guía de Supabase local](infra/supabase/README.md) para arrancar la pila y generar `infra/supabase/.env.local`, ignorado por Git. Copia `apps/api/.env.example` a `apps/api/.env` si todavía no existe; si ya existe, añade las variables de BD sin sobrescribir los valores actuales. Los valores de ejemplo ya apuntan a la pila local:
+
+- Bash: `cp -n apps/api/.env.example apps/api/.env`
+- PowerShell: `if (-not (Test-Path apps/api/.env)) { Copy-Item apps/api/.env.example apps/api/.env }`
+
+Después ejecuta:
 
 ```bash
 pnpm db:migrate
