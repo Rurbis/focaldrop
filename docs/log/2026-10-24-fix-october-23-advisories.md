@@ -1,6 +1,6 @@
 # fix(deps): patch body-parser, multer, fast-uri and undici for the october 23 advisories
 
-Issue: — · PR: (este) · Autor: Rubén
+Issue: — · PR: #72 · Autor: Rubén
 
 ## Historial
 
