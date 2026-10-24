@@ -9,7 +9,7 @@ Next.js 16 (App Router) front of Focal Drop: the admin panel today, and the publ
 3. Create a user to sign in with. Public sign-up is closed (D94), so use the Auth admin API as the Supabase guide explains, until the seed of issue #15 creates the demo owner.
 4. Run `pnpm --filter @focaldrop/web dev` and open <http://localhost:3000/admin>.
 
-Password recovery emails arrive in Mailpit (<http://127.0.0.1:54324>). Local Supabase sends at most 2 emails per hour; past that, the form shows the rate-limit message.
+Password recovery emails arrive in Mailpit (<http://127.0.0.1:54324>). Local Supabase sends at most 2 emails per hour; past that, no email arrives, but the form still shows the same neutral answer, so it never reveals whether an account exists.
 
 ## Admin access (issue #18)
 
