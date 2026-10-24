@@ -203,5 +203,28 @@ only in the test module.
 Production deployments must retain this package's `package.json` alongside
 `dist/`, because the API reads its version at startup.
 
+## Container image and staging deploy (issue #16)
+
+The [`Dockerfile`](Dockerfile) builds from the repository root:
+
+```sh
+docker build -f apps/api/Dockerfile -t focaldrop-api .
+docker run --rm -p 3001:8080 -e PORT=8080 focaldrop-api
+```
+
+The first stage installs only this package and `@focaldrop/shared`, compiles
+both, and copies the API with its production dependencies using
+`pnpm deploy --prod`. `"files": ["dist"]` keeps the compiled code in that copy,
+next to `package.json`. The final image is Node 24 slim, runs as `node` and has
+no compiler, tests or root tooling.
+
+Every push to `main` that touches the API or shared runs
+[`deploy-api.yml`](../../.github/workflows/deploy-api.yml): build, push to
+Artifact Registry, `pnpm db:migrate` against staging with
+`MIGRATIONS_DATABASE_URL`, `gcloud run deploy` and a `/health` smoke test. In
+Cloud Run, `NODE_ENV` is `production` and `DATABASE_URL` comes from Secret
+Manager. The one-time setup is in
+[infra/gcp/README.md](../../infra/gcp/README.md#before-the-first-api-deploy-issue-16).
+
 Formatting is managed from the repository root with `pnpm format:check` and
 `pnpm format`.
