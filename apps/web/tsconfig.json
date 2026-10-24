@@ -18,6 +18,7 @@
   "include": [
     "next-env.d.ts",
     "src",
+    "vitest.config.ts",
     "next.config.ts",
     "open-next.config.ts",
     ".next/types/**/*.ts"

@@ -1,0 +1,11 @@
+<!-- Password recovery email (issue #18). The link goes to /admin/auth/confirm, which
+     verifies the one-time token and asks for the new password. -->
+<h2>Restablece tu contraseña</h2>
+<p>Recibimos una solicitud para cambiar la contraseña de tu cuenta de Focal Drop.</p>
+<p>
+  <a href="{{ .SiteURL }}/admin/auth/confirm?token_hash={{ .TokenHash }}&amp;type=recovery"
+    >Elegir una contraseña nueva</a
+  >
+</p>
+<p>El enlace vence en una hora y solo se puede usar una vez.</p>
+<p>Si no lo pediste, ignora este correo: tu contraseña no cambia.</p>
