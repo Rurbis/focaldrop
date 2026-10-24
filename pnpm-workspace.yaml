@@ -31,3 +31,13 @@ overrides:
   # (Dependabot #18). drizzle-kit never loads it, so it gets the esbuild that
   # drizzle-kit itself uses. Remove once drizzle-kit drops @esbuild-kit.
   '@esbuild-kit/core-utils>esbuild': 0.25.12
+  # @nestjs/platform-express pins multer 2.4.0 (still in 12.2.0, the latest),
+  # which has the denial of service GHSA-q7qp-rjg7-q26m. The API parses no
+  # multipart bodies yet, but multer ships in its image. Remove once Nest pins
+  # 2.5.0 or newer.
+  '@nestjs/platform-express>multer': 2.5.0
+  # wrangler's local runtime (miniflare) pins undici 7.29.1, which has three
+  # advisories (GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, GHSA-f72v-6w45-q472).
+  # It only runs on developer machines, never in the Worker. Remove once
+  # wrangler ships undici 7.30.1 or newer.
+  'miniflare>undici': 7.30.1
