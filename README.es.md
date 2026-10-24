@@ -93,7 +93,14 @@ cd focaldrop
 pnpm install --frozen-lockfile
 ```
 
-Sigue la [guía de Supabase local](infra/supabase/README.md) para arrancar la pila y generar `infra/supabase/.env.local`, ignorado por Git. Copia `apps/api/.env.example` a `apps/api/.env` si todavía no existe; si ya existe, añade las variables de BD sin sobrescribir los valores actuales. Después ejecuta:
+Puede que pnpm termine con un recuadro que dice que ignoró los scripts de compilación de `esbuild`. Es normal: nada en el repo los necesita.
+
+Sigue la [guía de Supabase local](infra/supabase/README.md) para arrancar la pila y generar `infra/supabase/.env.local`, ignorado por Git. Copia `apps/api/.env.example` a `apps/api/.env` si todavía no existe; si ya existe, añade las variables de BD sin sobrescribir los valores actuales. Los valores de ejemplo ya apuntan a la pila local:
+
+- Bash: `cp -n apps/api/.env.example apps/api/.env`
+- PowerShell: `if (-not (Test-Path apps/api/.env)) { Copy-Item apps/api/.env.example apps/api/.env }`
+
+Después ejecuta:
 
 ```bash
 pnpm db:migrate
@@ -141,9 +148,10 @@ El front se despliega a Cloudflare Workers desde GitHub Actions ([`deploy-web.ym
 
 Los documentos de diseño viven en [`docs/`](docs/):
 
-- [Bitácora](docs/project-log.md): todas las decisiones (D1–D128), pendientes, supuestos, glosario e historial.
+- [Bitácora](docs/project-log.md): todas las decisiones (D1–D134), pendientes, supuestos, glosario e historial.
 - [Arquitectura](docs/phase-1a-architecture.md), [datos y usuarios](docs/phase-1b-data-and-users.md), [alcance y cierre](docs/phase-1c-scope-and-closing.md) y [metodología](docs/phase-2-methodology.md).
-- Los ADRs (_Architecture Decision Records_) llegan a `docs/adr/`.
+- Los [ADRs](docs/adr/README.md) (_Architecture Decision Records_).
+- [Plan de diseño del front](docs/design/plan.md): cómo se diseñan el sitio público, la galería del cliente y el panel para que nunca se vean genéricos.
 
 ## Estado
 

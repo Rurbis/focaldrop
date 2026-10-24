@@ -72,10 +72,15 @@ jobs:
           url=$(jq -r 'select(.type == "deploy") | .targets[]?' "$WRANGLER_OUTPUT_FILE_PATH" | grep -m 1 '^https://')
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
+      # The login reads the Supabase settings at request time, so a missing
+      # variable surfaces here as a 500 instead of on the live site.
       - name: Smoke test
         env:
           URL: ${{ steps.deploy.outputs.url }}
-        run: curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL/"
+        run: |
+          for path in / /admin/login; do
+            curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
+          done
 
   preview:
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
@@ -116,7 +121,10 @@ jobs:
         if: steps.preview.outputs.url != ''
         env:
           URL: ${{ steps.preview.outputs.url }}
-        run: curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL/"
+        run: |
+          for path in / /admin/login; do
+            curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
+          done
 
   delete-preview:
     if: >-

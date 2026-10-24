@@ -93,7 +93,14 @@ cd focaldrop
 pnpm install --frozen-lockfile
 ```
 
-Follow the [local Supabase guide](infra/supabase/README.md) to start the stack and generate its ignored `infra/supabase/.env.local`. Copy `apps/api/.env.example` to `apps/api/.env` if that file does not exist; otherwise add its database settings without overwriting existing values. Then run:
+pnpm may end with a box saying it ignored the build scripts of `esbuild`. That is expected: nothing in the repo needs them.
+
+Follow the [local Supabase guide](infra/supabase/README.md) to start the stack and generate its ignored `infra/supabase/.env.local`. Copy `apps/api/.env.example` to `apps/api/.env` if that file does not exist; otherwise add its database settings without overwriting existing values. The example values already point to the local stack:
+
+- Bash: `cp -n apps/api/.env.example apps/api/.env`
+- PowerShell: `if (-not (Test-Path apps/api/.env)) { Copy-Item apps/api/.env.example apps/api/.env }`
+
+Then run:
 
 ```bash
 pnpm db:migrate
@@ -141,9 +148,10 @@ The front deploys to Cloudflare Workers from GitHub Actions ([`deploy-web.yml`](
 
 Design documents live in [`docs/`](docs/) (in Spanish):
 
-- [Project log](docs/project-log.md): every decision (D1–D128), pending items, assumptions, glossary and history.
+- [Project log](docs/project-log.md): every decision (D1–D134), pending items, assumptions, glossary and history.
 - [Architecture](docs/phase-1a-architecture.md), [data and users](docs/phase-1b-data-and-users.md), [scope and closing](docs/phase-1c-scope-and-closing.md) and [methodology](docs/phase-2-methodology.md).
-- Architecture Decision Records arrive in `docs/adr/`.
+- [Architecture Decision Records](docs/adr/README.md).
+- [Front-end design plan](docs/design/plan.md): how the public site, client gallery and admin panel are designed so they never look generic.
 
 ## Status
 

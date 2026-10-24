@@ -18,11 +18,14 @@
     "cf:preview": "wrangler preview"
   },
   "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-aria": "3.52.1",
     "react-aria-components": "1.21.1",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "1.20.12",
