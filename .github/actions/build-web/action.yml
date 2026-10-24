@@ -1,0 +1,35 @@
+# Builds the front as a Cloudflare Worker with OpenNext and checks its size
+# against the Workers Free limit (D129, D137). Runs after ./.github/actions/setup.
+name: Build web Worker
+description: Build the front with OpenNext and check the compressed Worker size.
+
+runs:
+  using: composite
+  steps:
+    # Workspace packages the web app imports must be compiled before Next builds.
+    - name: Build workspace dependencies
+      shell: bash
+      run: pnpm exec turbo run build --filter=@focaldrop/web^...
+
+    - name: Build the Worker with OpenNext
+      shell: bash
+      run: pnpm --filter @focaldrop/web cf:build
+
+    # Workers Free accepts up to 3 MiB (3,072 KiB) compressed. Failing at
+    # 2.75 MiB leaves room to react before a deploy is rejected.
+    - name: Check the Worker size
+      shell: bash
+      env:
+        BUDGET_KIB: '2816'
+      run: |
+        pnpm --filter @focaldrop/web cf:size | tee "$RUNNER_TEMP/worker-size.txt"
+        size=$(grep -oE 'gzip: [0-9.]+ KiB' "$RUNNER_TEMP/worker-size.txt" | tail -n 1 | grep -oE '[0-9.]+')
+        if [ -z "$size" ]; then
+          echo "::error::Could not read the compressed Worker size from wrangler."
+          exit 1
+        fi
+        echo "Worker comprimido: **${size} KiB** de 3,072 KiB (presupuesto: ${BUDGET_KIB} KiB)." >> "$GITHUB_STEP_SUMMARY"
+        if awk -v size="$size" -v budget="$BUDGET_KIB" 'BEGIN { exit !(size > budget) }'; then
+          echo "::error::The Worker is ${size} KiB compressed, over the ${BUDGET_KIB} KiB budget."
+          exit 1
+        fi

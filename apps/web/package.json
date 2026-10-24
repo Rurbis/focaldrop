@@ -10,21 +10,28 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:local": "opennextjs-cloudflare preview",
+    "cf:size": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "cf:deploy": "opennextjs-cloudflare deploy",
+    "cf:preview": "wrangler preview"
   },
   "dependencies": {
-    "next": "16.3.8",
+    "next": "16.4.2",
     "react": "19.3.0",
     "react-aria": "3.52.1",
     "react-aria-components": "1.21.1",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.12",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "tailwindcss": "4.3.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "wrangler": "4.148.0"
   }
 }
