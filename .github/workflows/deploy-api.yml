@@ -16,6 +16,7 @@ on:
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
+      - tsconfig.base.json # apps/api and packages/shared extend it.
       - .dockerignore
       - .github/workflows/deploy-api.yml
       - .github/actions/**
