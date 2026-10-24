@@ -1,6 +1,6 @@
 # ci(api): deploy the api to cloud run staging
 
-Issue: #16 · PR: (este) · Autor: Rubén
+Issue: #16 · PR: #69 · Autor: Rubén
 
 ## Decisiones
 
