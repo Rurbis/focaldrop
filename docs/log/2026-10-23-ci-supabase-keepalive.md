@@ -1,6 +1,6 @@
 # ci(infra): keep supabase staging awake with a daily query
 
-Issue: #22 · PR: (este) · Autor: Rubén
+Issue: #22 · PR: #68 · Autor: Rubén
 
 ## Decisiones
 
