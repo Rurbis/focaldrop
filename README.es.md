@@ -130,6 +130,13 @@ Se corren desde la raíz del repo. Turborepo ejecuta cada tarea en las apps y pa
 | `pnpm db:reset`                     | Borra los datos de Supabase local, migra y siembra de nuevo |
 | `pnpm format` / `pnpm format:check` | Prettier                                                    |
 
+## Despliegues
+
+El front se despliega a Cloudflare Workers desde GitHub Actions ([`deploy-web.yml`](.github/workflows/deploy-web.yml)). Cada PR que lo toca recibe su propia preview (`pr-<número>`), enlazada desde el PR, y cada mezcla a `main` despliega staging. OpenNext solo genera un Worker que funciona en Linux, así que siempre se compila en la CI (D129, D137); en Windows se usa `pnpm dev`.
+
+- **Staging:** https://focaldrop-web-staging.focaldrop.workers.dev
+- **Previews de los PRs:** `https://pr-<número>-focaldrop-web-staging.focaldrop.workers.dev`
+
 ## Cómo contribuir
 
 - **Ramas cortas** desde `main` (`feat/`, `fix/`, `chore/`, `docs/`, `ci/`, `spike/`) y **Conventional Commits** con _scope_: `feat(web): add login page`.
