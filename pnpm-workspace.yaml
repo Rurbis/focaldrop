@@ -5,3 +5,24 @@ packages:
 # Fail the install when Node or pnpm do not match "engines" in package.json,
 # so nobody works with a different version without noticing (D114).
 engineStrict: true
+
+# sharp (Next's optional native image optimizer) cannot run in a Worker, and
+# OpenNext's bundler follows pnpm's links straight to it (S-4, D129). Images
+# are never optimized by Next here: galleries bring their own previews.
+ignoredOptionalDependencies:
+  - sharp
+# Keep sharp out of pnpm's shared hoisting folder, so Next cannot reach the
+# copy that wrangler brings for its local runtime.
+hoistPattern:
+  - '*'
+  - '!sharp'
+  - '!@img/*'
+
+overrides:
+  # wrangler's local runtime (miniflare) pins sharp 0.35.4, whose bundled
+  # librsvg has GHSA-wq5f-xc86-pv6w. It only runs on developer machines, never
+  # in the Worker. Remove once wrangler ships 0.35.5 or newer.
+  'miniflare>sharp': 0.35.5
+  # OpenNext's minifier pins glob 10.3, whose CLI has GHSA-5j98-mcp5-4vw2.
+  # OpenNext only uses the library, but 10.5.0 is a compatible minor.
+  '@node-minify/core>glob': 10.5.0
