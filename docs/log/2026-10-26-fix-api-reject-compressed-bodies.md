@@ -1,6 +1,6 @@
 # fix(api): reject compressed request bodies and keep parser errors out of sentry
 
-Issue: — · PR: (este) · Autor: Rubén
+Issue: — · PR: #74 · Autor: Rubén
 
 ## Decisiones
 
