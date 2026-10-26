@@ -84,7 +84,7 @@ docs/             Bitácora de decisiones y documentos de diseño
 
 ## Cómo empezar
 
-**Requisitos:** Git, Node.js 24 (ver `.nvmrc`), pnpm 10.34.6 y Docker Desktop con el motor Linux arrancado.
+**Requisitos:** Git, Node.js 24.22.1 o una 24.x posterior (ver `.nvmrc`), pnpm 10.34.6 y Docker Desktop con el motor Linux arrancado.
 
 ```bash
 npm install -g pnpm@10.34.6
