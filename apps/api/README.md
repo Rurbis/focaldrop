@@ -65,6 +65,12 @@ Our policy in `src/constants/sentry.constants.ts` disables automatic user info,
 cookies, headers, bodies, query parameters and integration payload collection.
 Performance tracing is disabled, and releases use `focaldrop-api@<package version>`.
 
+`configureApp()` in `src/bootstrap.ts` holds the HTTP settings that the server
+and the e2e tests share. JSON and urlencoded bodies are never decompressed: a
+`Content-Encoding` other than `identity` gets a 415. Parser rejections (415, and
+413 over the 100 KB default limit) become `HttpException`s, so they answer the
+same way but stay out of Sentry instead of draining its quota.
+
 Issue #9 already provisioned the Sentry API project. For staging, use its DSN
 from the team's secret store and set `SENTRY_ENVIRONMENT=staging`; do not create
 a second project or commit the DSN. A post-deploy check in the real Sentry project
