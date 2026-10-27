@@ -5,3 +5,39 @@ packages:
 # Fail the install when Node or pnpm do not match "engines" in package.json,
 # so nobody works with a different version without noticing (D114).
 engineStrict: true
+
+# sharp (Next's optional native image optimizer) cannot run in a Worker, and
+# OpenNext's bundler follows pnpm's links straight to it (S-4, D129). Images
+# are never optimized by Next here: galleries bring their own previews.
+ignoredOptionalDependencies:
+  - sharp
+# Keep sharp out of pnpm's shared hoisting folder, so Next cannot reach the
+# copy that wrangler brings for its local runtime.
+hoistPattern:
+  - '*'
+  - '!sharp'
+  - '!@img/*'
+
+overrides:
+  # wrangler's local runtime (miniflare) pins sharp 0.35.4, whose bundled
+  # librsvg has GHSA-wq5f-xc86-pv6w. It only runs on developer machines, never
+  # in the Worker. Remove once wrangler ships 0.35.5 or newer.
+  'miniflare>sharp': 0.35.5
+  # OpenNext's minifier pins glob 10.3, whose CLI has GHSA-5j98-mcp5-4vw2.
+  # OpenNext only uses the library, but 10.5.0 is a compatible minor.
+  '@node-minify/core>glob': 10.5.0
+  # drizzle-kit 0.31 still declares @esbuild-kit (abandoned, merged into tsx),
+  # which pins esbuild 0.18 with the dev-server advisory GHSA-67mh-4wv8-2f99
+  # (Dependabot #18). drizzle-kit never loads it, so it gets the esbuild that
+  # drizzle-kit itself uses. Remove once drizzle-kit drops @esbuild-kit.
+  '@esbuild-kit/core-utils>esbuild': 0.25.12
+  # @nestjs/platform-express pins multer 2.4.0 (still in 12.2.0, the latest),
+  # which has the denial of service GHSA-q7qp-rjg7-q26m. The API parses no
+  # multipart bodies yet, but multer ships in its image. Remove once Nest pins
+  # 2.5.0 or newer.
+  '@nestjs/platform-express>multer': 2.5.0
+  # wrangler's local runtime (miniflare) pins undici 7.29.1, which has three
+  # advisories (GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, GHSA-f72v-6w45-q472).
+  # It only runs on developer machines, never in the Worker. Remove once
+  # wrangler ships undici 7.30.1 or newer.
+  'miniflare>undici': 7.30.1

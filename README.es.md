@@ -84,7 +84,7 @@ docs/             Bitácora de decisiones y documentos de diseño
 
 ## Cómo empezar
 
-**Requisitos:** Git, Node.js 24 (ver `.nvmrc`), pnpm 10.34.6 y Docker Desktop con el motor Linux arrancado.
+**Requisitos:** Git, Node.js 24.22.1 o una 24.x posterior (ver `.nvmrc`), pnpm 10.34.6 y Docker Desktop con el motor Linux arrancado.
 
 ```bash
 npm install -g pnpm@10.34.6
@@ -93,7 +93,14 @@ cd focaldrop
 pnpm install --frozen-lockfile
 ```
 
-Sigue la [guía de Supabase local](infra/supabase/README.md) para arrancar la pila y generar `infra/supabase/.env.local`, ignorado por Git. Copia `apps/api/.env.example` a `apps/api/.env` si todavía no existe; si ya existe, añade las variables de BD sin sobrescribir los valores actuales. Después ejecuta:
+Puede que pnpm termine con un recuadro que dice que ignoró los scripts de compilación de `esbuild`. Es normal: nada en el repo los necesita.
+
+Sigue la [guía de Supabase local](infra/supabase/README.md) para arrancar la pila y generar `infra/supabase/.env.local`, ignorado por Git. Copia `apps/api/.env.example` a `apps/api/.env` si todavía no existe; si ya existe, añade las variables de BD sin sobrescribir los valores actuales. Los valores de ejemplo ya apuntan a la pila local:
+
+- Bash: `cp -n apps/api/.env.example apps/api/.env`
+- PowerShell: `if (-not (Test-Path apps/api/.env)) { Copy-Item apps/api/.env.example apps/api/.env }`
+
+Después ejecuta:
 
 ```bash
 pnpm db:migrate
@@ -123,6 +130,16 @@ Se corren desde la raíz del repo. Turborepo ejecuta cada tarea en las apps y pa
 | `pnpm db:reset`                     | Borra los datos de Supabase local, migra y siembra de nuevo |
 | `pnpm format` / `pnpm format:check` | Prettier                                                    |
 
+## Despliegues
+
+La API se despliega a Cloud Run desde GitHub Actions ([`deploy-api.yml`](.github/workflows/deploy-api.yml)). Cada mezcla a `main` que la toca compila la imagen, migra la BD de staging y despliega: https://focaldrop-api-staging-664538226545.us-east4.run.app/health. La configuración única está en [infra/gcp/README.md](infra/gcp/README.md).
+
+El front se despliega a Cloudflare Workers desde GitHub Actions ([`deploy-web.yml`](.github/workflows/deploy-web.yml)). Cada PR que lo toca recibe su propia preview (`pr-<número>`), enlazada desde el PR, y cada mezcla a `main` despliega staging. OpenNext solo genera un Worker que funciona en Linux, así que siempre se compila en la CI (D129, D137); en Windows se usa `pnpm dev`.
+
+- **Staging:** https://focaldrop-web-staging.focaldrop.workers.dev
+- **Previews de los PRs:** `https://pr-<número>-focaldrop-web-staging.focaldrop.workers.dev`
+- **Supabase de staging** está en el plan gratuito, que pausa un proyecto tras una semana sin actividad en la BD. [`keep-supabase-awake.yml`](.github/workflows/keep-supabase-awake.yml) hace una consulta diaria para mantenerlo activo.
+
 ## Cómo contribuir
 
 - **Ramas cortas** desde `main` (`feat/`, `fix/`, `chore/`, `docs/`, `ci/`, `spike/`) y **Conventional Commits** con _scope_: `feat(web): add login page`.
@@ -134,9 +151,10 @@ Se corren desde la raíz del repo. Turborepo ejecuta cada tarea en las apps y pa
 
 Los documentos de diseño viven en [`docs/`](docs/):
 
-- [Bitácora](docs/project-log.md): todas las decisiones (D1–D128), pendientes, supuestos, glosario e historial.
+- [Bitácora](docs/project-log.md): todas las decisiones (D1–D134), pendientes, supuestos, glosario e historial.
 - [Arquitectura](docs/phase-1a-architecture.md), [datos y usuarios](docs/phase-1b-data-and-users.md), [alcance y cierre](docs/phase-1c-scope-and-closing.md) y [metodología](docs/phase-2-methodology.md).
-- Los ADRs (_Architecture Decision Records_) llegan a `docs/adr/`.
+- Los [ADRs](docs/adr/README.md) (_Architecture Decision Records_).
+- [Plan de diseño del front](docs/design/plan.md): cómo se diseñan el sitio público, la galería del cliente y el panel para que nunca se vean genéricos.
 
 ## Estado
 

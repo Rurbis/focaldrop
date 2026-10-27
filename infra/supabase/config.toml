@@ -58,6 +58,13 @@ enable_signup = true
 # Local development does not require email confirmation.
 enable_confirmations = false
 
+# Password recovery in Spanish, with a one-time token hash instead of a PKCE code
+# so the link works on any device (issue #18). Staging and production need the
+# same template in their Auth settings.
+[auth.email.template.recovery]
+subject = "Restablece tu contraseña de Focal Drop"
+content_path = "./supabase/templates/recovery.html"
+
 [auth.sms]
 enable_signup = false
 

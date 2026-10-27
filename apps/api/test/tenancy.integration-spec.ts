@@ -1,16 +1,16 @@
 import { PublicTenantSchema, type PublicTenant } from '@focaldrop/shared';
-import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { sql } from 'drizzle-orm';
 import request from 'supertest';
-import type { App } from 'supertest/types.js';
 
 import { AppModule } from '../src/app.module.js';
+import { configureApp } from '../src/bootstrap.js';
 import { createDatabase } from '../src/db/database.js';
 import { DatabaseService } from '../src/db/database.module.js';
 import { migrateDatabase } from '../src/db/migrate.js';
 import { agencies, agencyDomains } from '../src/db/schema/index.js';
-import { TENANCY_OPTIONS } from '../src/tenancy/tenancy.options.js';
+import { readTenancyOptions, TENANCY_OPTIONS } from '../src/tenancy/tenancy.options.js';
 import { TenancyRepository } from '../src/tenancy/tenancy.repository.js';
 import { createTestDatabase } from './helpers/database.js';
 
@@ -75,20 +75,22 @@ describeWithDatabase('tenant resolution against real PostgreSQL', () => {
     ).rejects.toBe(rollback);
   });
 
-  it('serves the real HTTP endpoint using the runtime role and the migrated schema', async () => {
+  it('serves registered hosts and staging fallback using app_api and validated configuration', async () => {
     const rollback = new Error('Roll back HTTP test role membership.');
     await expect(
       database.db.transaction(async (tx) => {
         await tx.execute(sql.raw('GRANT app_api TO CURRENT_USER WITH INHERIT FALSE, SET TRUE'));
         await tx.execute(sql.raw('SET LOCAL ROLE app_api'));
+        const options = readTenancyOptions({ NODE_ENV: 'production', APP_ENV: 'production' });
         const module = await Test.createTestingModule({ imports: [AppModule] })
           .overrideProvider(DatabaseService)
           .useValue({ db: tx })
           .overrideProvider(TENANCY_OPTIONS)
-          .useValue({ environment: 'production' })
+          .useValue(options)
           .compile();
-        const app: INestApplication<App> = module.createNestApplication({ logger: false });
+        const app = module.createNestApplication<NestExpressApplication>({ logger: false });
         try {
+          configureApp(app);
           await app.init();
           await request(app.getHttpServer())
             .get('/public/tenant')
@@ -104,6 +106,25 @@ describeWithDatabase('tenant resolution against real PostgreSQL', () => {
             .get('/public/tenant')
             .set('X-Tenant-Host', 'missing.example.com')
             .expect(404);
+          Object.assign(
+            options,
+            readTenancyOptions({
+              NODE_ENV: 'production',
+              APP_ENV: 'staging',
+              DEFAULT_AGENCY_SLUG: alpha.slug,
+            }),
+          );
+          await request(app.getHttpServer())
+            .get('/public/tenant')
+            .set('X-Tenant-Host', 'pr-61-focaldrop-web-staging.focaldrop.workers.dev')
+            .expect('Cache-Control', 'no-store')
+            .expect(200)
+            .expect(alpha);
+          await request(app.getHttpServer())
+            .get('/public/tenant')
+            .expect('Cache-Control', 'no-store')
+            .expect(200)
+            .expect(alpha);
         } finally {
           await app.close();
         }

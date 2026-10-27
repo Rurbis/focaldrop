@@ -28,6 +28,7 @@
       "dependsOn": ["^build"],
       "env": [
         "CI",
+        "APP_ENV",
         "DATABASE_URL",
         "TEST_DATABASE_URL",
         "MIGRATIONS_DATABASE_URL",
@@ -37,6 +38,7 @@
     "dev": {
       "env": [
         "NODE_ENV",
+        "APP_ENV",
         "PORT",
         "DATABASE_URL",
         "DEFAULT_AGENCY_SLUG",

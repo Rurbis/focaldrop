@@ -22,6 +22,7 @@ Closes #
 - [ ] Nada de la agencia en el código; sin secretos ni datos reales.
 - [ ] Si toca la interfaz pública o la galería: probado en celular (o en el emulador) y con teclado.
 - [ ] Documentación: `.env.example`, ADR o README actualizados si aplica.
+- [ ] Nota de bitácora en `docs/log/` (no se edita `docs/project-log.md`; D138).
 - [ ] Después del deploy a staging: sin errores nuevos en Sentry (lo revisa el autor).
 
 ## Tiempo real

@@ -1,6 +1,7 @@
 import type { PublicTenant } from '@focaldrop/shared';
 
 import { TenancyService } from './tenancy.service.js';
+import type { TenancyOptions } from './tenancy.options.js';
 
 const demo = {
   id: '0199e0a4-7c2b-7d3e-8f41-2a6b9c0d1e2f',
@@ -12,7 +13,7 @@ const demo = {
   currency: 'MXN',
 } satisfies PublicTenant;
 
-function setup(environment: 'development' | 'production' = 'production', defaultSlug?: string) {
+function setup(environment: TenancyOptions['environment'] = 'production', defaultSlug?: string) {
   const repository = {
     findByHostname: vi.fn<(hostname: string) => Promise<PublicTenant | undefined>>(),
     findBySlug: vi.fn<(slug: string) => Promise<PublicTenant | undefined>>(),
@@ -31,15 +32,17 @@ describe('TenancyService', () => {
     expect(repository.findBySlug).not.toHaveBeenCalled();
   });
 
-  it.each(['preview.example.com', undefined])(
-    'falls back for an unknown/missing local host (%s)',
-    async (header) => {
-      const { repository, service } = setup('development', 'demo');
-      repository.findBySlug.mockResolvedValue(demo);
-      expect(await service.resolve(header)).toEqual(demo);
-      expect(repository.findBySlug).toHaveBeenCalledWith('demo');
-    },
-  );
+  it.each([
+    ['development', 'preview.example.com'],
+    ['development', undefined],
+    ['staging', 'pr-61-focaldrop-web-staging.focaldrop.workers.dev'],
+    ['staging', undefined],
+  ] as const)('falls back in %s for an unknown/missing host (%s)', async (environment, header) => {
+    const { repository, service } = setup(environment, 'demo');
+    repository.findBySlug.mockResolvedValue(demo);
+    expect(await service.resolve(header)).toEqual(demo);
+    expect(repository.findBySlug).toHaveBeenCalledWith('demo');
+  });
 
   it.each(['unknown.example.com', undefined])(
     'never falls back in production (%s)',
@@ -67,18 +70,24 @@ describe('TenancyService', () => {
     expect(repository.findBySlug).not.toHaveBeenCalled();
   });
 
-  it('does not replace a registered suspended agency with the default', async () => {
-    const { repository, service } = setup('development', 'demo');
-    repository.findByHostname.mockResolvedValue({ ...demo, status: 'suspended' });
-    await expect(service.resolve('localhost')).rejects.toMatchObject({ status: 404 });
-    expect(repository.findBySlug).not.toHaveBeenCalled();
-  });
+  it.each(['development', 'staging'] as const)(
+    'does not replace a suspended agency in %s',
+    async (environment) => {
+      const { repository, service } = setup(environment, 'demo');
+      repository.findByHostname.mockResolvedValue({ ...demo, status: 'suspended' });
+      await expect(service.resolve('localhost')).rejects.toMatchObject({ status: 404 });
+      expect(repository.findBySlug).not.toHaveBeenCalled();
+    },
+  );
 
-  it('rejects a suspended fallback too', async () => {
-    const { repository, service } = setup('development', 'demo');
-    repository.findBySlug.mockResolvedValue({ ...demo, status: 'suspended' });
-    await expect(service.resolve(undefined)).rejects.toMatchObject({ status: 404 });
-  });
+  it.each(['development', 'staging'] as const)(
+    'rejects a suspended fallback in %s',
+    async (environment) => {
+      const { repository, service } = setup(environment, 'demo');
+      repository.findBySlug.mockResolvedValue({ ...demo, status: 'suspended' });
+      await expect(service.resolve(undefined)).rejects.toMatchObject({ status: 404 });
+    },
+  );
 
   it('caches per normalized hostname and expires at exactly five minutes', async () => {
     const clock = vi.spyOn(Date, 'now').mockReturnValue(1000);
@@ -125,13 +134,16 @@ describe('TenancyService', () => {
     expect(repository.findByHostname).toHaveBeenCalledTimes(1);
   });
 
-  it('propagates database outages without hiding them behind fallback', async () => {
-    const { repository, service } = setup('development', 'demo');
-    const failure = new Error('Synthetic database outage');
-    repository.findByHostname.mockRejectedValue(failure);
-    await expect(service.resolve('localhost')).rejects.toBe(failure);
-    expect(repository.findBySlug).not.toHaveBeenCalled();
-  });
+  it.each(['development', 'staging'] as const)(
+    'propagates database outages in %s without fallback',
+    async (environment) => {
+      const { repository, service } = setup(environment, 'demo');
+      const failure = new Error('Synthetic database outage');
+      repository.findByHostname.mockRejectedValue(failure);
+      await expect(service.resolve('localhost')).rejects.toBe(failure);
+      expect(repository.findBySlug).not.toHaveBeenCalled();
+    },
+  );
 
   it('strips private settings and prevents mutation of shared cache objects', async () => {
     const { repository, service } = setup();

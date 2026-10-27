@@ -39,17 +39,21 @@ pnpm exec turbo run dev --filter=@focaldrop/api
 The API loads `apps/api/.env` when present. Variables supplied by the environment
 take precedence. Zod validates the configuration during startup:
 
-| Variable              | Required | Values / default                                                                  |
-| --------------------- | -------- | --------------------------------------------------------------------------------- |
-| `NODE_ENV`            | Yes      | `development`, `test` or `production`                                             |
-| `PORT`                | No       | Integer from 1 to 65535; defaults to `3001`                                       |
-| `SENTRY_DSN`          | No       | HTTP(S) DSN for the existing API project; empty disables Sentry                   |
-| `SENTRY_ENVIRONMENT`  | No       | Deployment label, e.g. `staging`; defaults to `NODE_ENV`                          |
-| `DATABASE_URL`        | Yes      | PostgreSQL runtime connection using `app_api`; never the migrations administrator |
-| `DEFAULT_AGENCY_SLUG` | No       | Valid agency slug used for unknown/missing hosts outside production               |
+| Variable              | Required | Values / default                                                                     |
+| --------------------- | -------- | ------------------------------------------------------------------------------------ |
+| `NODE_ENV`            | Yes      | `development`, `test` or `production`                                                |
+| `APP_ENV`             | No       | `development`, `test`, `staging` or `production`; defaults to `NODE_ENV`             |
+| `PORT`                | No       | Integer from 1 to 65535; defaults to `3001`                                          |
+| `SENTRY_DSN`          | No       | HTTP(S) DSN for the existing API project; empty disables Sentry                      |
+| `SENTRY_ENVIRONMENT`  | No       | Deployment label, e.g. `staging`; defaults to `NODE_ENV`                             |
+| `DATABASE_URL`        | Yes      | PostgreSQL runtime connection using `app_api`; never the migrations administrator    |
+| `DEFAULT_AGENCY_SLUG` | No       | Valid fallback slug outside production; a nonempty value prevents production startup |
 
 Invalid configuration stops startup and identifies the affected variable.
 Restart the API after changing environment variables.
+`config/env.ts` validates `APP_ENV` and `DEFAULT_AGENCY_SLUG` together before
+Nest starts. Database URLs keep their separate runtime/migrations validators,
+so database CLI commands do not depend on HTTP-server settings.
 
 ## Logs and error reporting
 
@@ -66,6 +70,12 @@ Sentry 11 replaced `sendDefaultPii` with
 Our policy in `src/constants/sentry.constants.ts` disables automatic user info,
 cookies, headers, bodies, query parameters and integration payload collection.
 Performance tracing is disabled, and releases use `focaldrop-api@<package version>`.
+
+`configureApp()` in `src/bootstrap.ts` holds the HTTP settings that the server
+and the e2e tests share. JSON and urlencoded bodies are never decompressed: a
+`Content-Encoding` other than `identity` gets a 415. Parser rejections (415, and
+413 over the 100 KB default limit) become `HttpException`s, so they answer the
+same way but stay out of Sentry instead of draining its quota.
 
 Issue #9 already provisioned the Sentry API project. For staging, use its DSN
 from the team's secret store and set `SENTRY_ENVIRONMENT=staging`; do not create
@@ -156,18 +166,29 @@ email/preferences, retention and account-policy settings are not exposed.
   Malformed values, URLs, lists/duplicate headers and literal IPv6 are rejected
   with 400. Stored hostnames currently exclude colons.
 - A registered host resolves through `agency_domains`. Unknown/missing hosts can
-  use `DEFAULT_AGENCY_SLUG` only when `NODE_ENV` is `development` or `test`.
+  use `DEFAULT_AGENCY_SLUG` when `APP_ENV` is `development`, `test` or `staging`.
   Without an available default they return 404. Suspended agencies return 404.
-- `NODE_ENV=production` always disables fallback, including staging running a
-  production build. Register its real hostname; `SENTRY_ENVIRONMENT` does not
-  change tenant rules. Malformed headers never fall back.
+- `APP_ENV` describes the deployment separately from Node's runtime mode. For
+  Cloud Run staging and PR previews, use `NODE_ENV=production`, `APP_ENV=staging`
+  and the existing staging agency's slug as `DEFAULT_AGENCY_SLUG`. The agency
+  must first be provisioned in staging (#71); the local seed does not run there.
+  This resolves changing preview hosts without registering every PR hostname.
+- `APP_ENV=production` never falls back, and a nonempty `DEFAULT_AGENCY_SLUG`
+  aborts startup. If `APP_ENV` is omitted, it defaults to `NODE_ENV`, so a
+  production runtime remains strict. `SENTRY_ENVIRONMENT` is only a telemetry
+  label and cannot enable fallback. Malformed headers never fall back.
 - Successful resolutions are cached per normalized host for five minutes in
   each API process, with at most 1,000 entries (oldest inserted entry evicted).
-  No external cache is required. Changes/suspensions may take up to five minutes
-  to appear on an instance. Misses and database failures are not cached.
+  No external cache is required. Changes to domains and agency suspensions may
+  take up to five minutes to appear on each instance; Cloud Run's two instances
+  can expire their entries at different times. Immediate invalidation belongs
+  with the future domain/suspension operations. Misses and database failures are
+  not cached.
 - HTTP responses on tenant routes, including errors, use `Cache-Control: no-store`
   to prevent shared caches mixing hosts. Next's explicit tagged application
-  cache belongs to #19.
+  cache belongs to the web part of #13 (formerly #19). That forwarding layer
+  must overwrite `X-Tenant-Host` from the incoming request's actual hostname,
+  rather than trusting a header supplied by the browser.
 
 `TenantMiddleware` runs on `/public` and `/admin`, including nested routes,
 before guards/controllers. It resolves the agency, then opens an isolated
@@ -272,6 +293,34 @@ only in the test module.
 
 Production deployments must retain this package's `package.json` alongside
 `dist/`, because the API reads its version at startup.
+
+## Container image and staging deploy (issue #16)
+
+The [`Dockerfile`](Dockerfile) builds from the repository root:
+
+```sh
+docker build -f apps/api/Dockerfile -t focaldrop-api .
+docker run --rm -p 3001:8080 -e PORT=8080 -e APP_ENV=production -e DATABASE_URL focaldrop-api
+```
+
+Export `DATABASE_URL` with the runtime role before running the container.
+Production must not receive `DEFAULT_AGENCY_SLUG`.
+
+The first stage installs only this package and `@focaldrop/shared`, compiles
+both, and copies the API with its production dependencies using
+`pnpm deploy --prod`. `"files": ["dist"]` keeps the compiled code in that copy,
+next to `package.json`. The final image is Node 24 slim, runs as `node` and has
+no compiler, tests or root tooling.
+
+Every push to `main` that touches the API or shared runs
+[`deploy-api.yml`](../../.github/workflows/deploy-api.yml): build, push to
+Artifact Registry, `pnpm db:migrate` against staging with
+`MIGRATIONS_DATABASE_URL`, `gcloud run deploy` and a `/health` smoke test. In
+Cloud Run staging, `NODE_ENV` is `production`, `APP_ENV` is `staging` and
+`DATABASE_URL` comes from Secret Manager. The optional fallback slug comes
+from the GitHub `staging` Environment secret after provisioning the agency
+in #71. The one-time setup is in
+[infra/gcp/README.md](../../infra/gcp/README.md#before-the-first-api-deploy-issue-16).
 
 Formatting is managed from the repository root with `pnpm format:check` and
 `pnpm format`.

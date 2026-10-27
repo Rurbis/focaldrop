@@ -1,0 +1,151 @@
+# Deploys the front to Cloudflare Workers (Phase 2 §6.1, D137). OpenNext only
+# builds a working Worker on Linux (D129), so it is always built here, never
+# on a developer's machine.
+#   - Push to main, or a manual run: deploys the staging Worker.
+#   - Pull request: builds the Worker and checks its size. When the PR comes
+#     from this repo, it also publishes the Worker Preview `pr-<number>`; its
+#     URL shows up in the PR as a deployment of the `preview` environment.
+#   - Pull request closed: deletes that Preview.
+name: Deploy web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/web/**
+      - packages/shared/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .github/workflows/deploy-web.yml
+      - .github/actions/**
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - apps/web/**
+      - packages/shared/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .github/workflows/deploy-web.yml
+      - .github/actions/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+  TURBO_TELEMETRY_DISABLED: '1'
+  WRANGLER_SEND_METRICS: 'false'
+  HUSKY: '0'
+
+jobs:
+  staging:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    # One deploy at a time, and never cancel one halfway.
+    concurrency:
+      group: deploy-web-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      # Public values, inlined into the browser bundle at build time.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/build-web
+
+      - name: Deploy to staging
+        id: deploy
+        env:
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+        run: |
+          pnpm --filter @focaldrop/web cf:deploy
+          url=$(jq -r 'select(.type == "deploy") | .targets[]?' "$WRANGLER_OUTPUT_FILE_PATH" | grep -m 1 '^https://')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # The login reads the Supabase settings at request time, so a missing
+      # variable surfaces here as a 500 instead of on the live site.
+      - name: Smoke test
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          for path in / /admin/login; do
+            curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
+          done
+
+  preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: preview
+      url: ${{ steps.preview.outputs.url }}
+    # A new push to the PR replaces the Preview being published.
+    concurrency:
+      group: deploy-web-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+      PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/build-web
+
+      # Forks and Dependabot get no secrets: their PRs stop after the build
+      # and the size check, which still catch a broken or oversized Worker.
+      - name: Publish the Preview
+        id: preview
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        env:
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+        run: |
+          pnpm --filter @focaldrop/web cf:preview --name "$PREVIEW_NAME"
+          url=$(jq -r 'select(.type == "preview") | .preview_urls[]?' "$WRANGLER_OUTPUT_FILE_PATH" | grep -m 1 '^https://')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Smoke test
+        if: steps.preview.outputs.url != ''
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+        run: |
+          for path in / /admin/login; do
+            curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
+          done
+
+  delete-preview:
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: preview
+    concurrency:
+      group: deploy-web-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      # A PR closed before its Preview existed has nothing to delete.
+      - name: Delete the Preview
+        run: |
+          pnpm --filter @focaldrop/web exec wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation \
+            || echo "::notice::No Preview $PREVIEW_NAME to delete."

@@ -1,13 +1,19 @@
 import type { PublicTenant } from '@focaldrop/shared';
 import { Controller, Get, Inject, type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 
 import { AppModule } from '../src/app.module.js';
+import { configureApp } from '../src/bootstrap.js';
 import { DatabaseService } from '../src/db/database.module.js';
 import { TenantContext } from '../src/tenancy/tenant.context.js';
-import { TENANCY_OPTIONS, type TenancyOptions } from '../src/tenancy/tenancy.options.js';
+import {
+  readTenancyOptions,
+  TENANCY_OPTIONS,
+  type TenancyOptions,
+} from '../src/tenancy/tenancy.options.js';
 import { TenancyRepository } from '../src/tenancy/tenancy.repository.js';
 import { TenancyModule } from '../src/tenancy/tenancy.module.js';
 
@@ -56,7 +62,7 @@ describe('tenancy HTTP and per-request context', () => {
   const lookup = vi.fn<(hostname: string) => Promise<PublicTenant | undefined>>();
 
   beforeEach(async () => {
-    options = { environment: 'production', defaultSlug: 'alpha' };
+    options = readTenancyOptions({ NODE_ENV: 'production', APP_ENV: 'production' });
     arrivals = 0;
     bothArrived = new Promise<void>((resolve) => {
       release = resolve;
@@ -88,7 +94,9 @@ describe('tenancy HTTP and per-request context', () => {
       })
       .compile();
 
-    app = fixture.createNestApplication({ logger: false });
+    const nestApp = fixture.createNestApplication<NestExpressApplication>({ logger: false });
+    configureApp(nestApp);
+    app = nestApp;
     await app.init();
   });
 
@@ -134,6 +142,7 @@ describe('tenancy HTTP and per-request context', () => {
 
   it('resolves local preview hosts through the configured default', async () => {
     options.environment = 'development';
+    options.defaultSlug = 'alpha';
     await request(app.getHttpServer())
       .get('/public/tenant')
       .set('X-Tenant-Host', 'preview.example.com')
@@ -141,8 +150,44 @@ describe('tenancy HTTP and per-request context', () => {
       .expect(alpha);
   });
 
+  it.each([
+    'focaldrop-web-staging.focaldrop.workers.dev',
+    'pr-61-focaldrop-web-staging.focaldrop.workers.dev',
+    undefined,
+  ])('resolves staging builds through fallback for %s', async (hostname) => {
+    Object.assign(
+      options,
+      readTenancyOptions({
+        NODE_ENV: 'production',
+        APP_ENV: 'staging',
+        DEFAULT_AGENCY_SLUG: 'alpha',
+      }),
+    );
+    const call = request(app.getHttpServer()).get('/public/tenant');
+    if (hostname) call.set('X-Tenant-Host', hostname);
+    await call.expect('Cache-Control', 'no-store').expect(200).expect(alpha);
+  });
+
+  it('still rejects malformed hosts when staging fallback is configured', async () => {
+    Object.assign(
+      options,
+      readTenancyOptions({
+        NODE_ENV: 'production',
+        APP_ENV: 'staging',
+        DEFAULT_AGENCY_SLUG: 'alpha',
+      }),
+    );
+    await request(app.getHttpServer())
+      .get('/public/tenant')
+      .set('X-Tenant-Host', 'https://localhost')
+      .expect('Cache-Control', 'no-store')
+      .expect(400);
+    expect(lookup).not.toHaveBeenCalled();
+  });
+
   it('propagates database failure as 500 instead of returning another agency', async () => {
     options.environment = 'development';
+    options.defaultSlug = 'alpha';
     lookup.mockRejectedValue(new Error('Synthetic database failure'));
     await request(app.getHttpServer())
       .get('/public/tenant')

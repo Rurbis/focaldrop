@@ -84,7 +84,7 @@ docs/             Decision log and design documents (Spanish)
 
 ## Getting started
 
-**Prerequisites:** Git, Node.js 24 (see `.nvmrc`), pnpm 10.34.6 and Docker Desktop with the Linux engine running.
+**Prerequisites:** Git, Node.js 24.22.1 or a later 24.x (see `.nvmrc`), pnpm 10.34.6 and Docker Desktop with the Linux engine running.
 
 ```bash
 npm install -g pnpm@10.34.6
@@ -93,7 +93,14 @@ cd focaldrop
 pnpm install --frozen-lockfile
 ```
 
-Follow the [local Supabase guide](infra/supabase/README.md) to start the stack and generate its ignored `infra/supabase/.env.local`. Copy `apps/api/.env.example` to `apps/api/.env` if that file does not exist; otherwise add its database settings without overwriting existing values. Then run:
+pnpm may end with a box saying it ignored the build scripts of `esbuild`. That is expected: nothing in the repo needs them.
+
+Follow the [local Supabase guide](infra/supabase/README.md) to start the stack and generate its ignored `infra/supabase/.env.local`. Copy `apps/api/.env.example` to `apps/api/.env` if that file does not exist; otherwise add its database settings without overwriting existing values. The example values already point to the local stack:
+
+- Bash: `cp -n apps/api/.env.example apps/api/.env`
+- PowerShell: `if (-not (Test-Path apps/api/.env)) { Copy-Item apps/api/.env.example apps/api/.env }`
+
+Then run:
 
 ```bash
 pnpm db:migrate
@@ -123,6 +130,16 @@ Run from the repository root; Turborepo runs each task in every app and package 
 | `pnpm db:reset`                     | Erase local Supabase data, migrate and seed again |
 | `pnpm format` / `pnpm format:check` | Prettier                                          |
 
+## Deployments
+
+The API deploys to Cloud Run from GitHub Actions ([`deploy-api.yml`](.github/workflows/deploy-api.yml)). Every merge to `main` that touches it builds the image, migrates the staging database and deploys: https://focaldrop-api-staging-664538226545.us-east4.run.app/health. The one-time setup is in [infra/gcp/README.md](infra/gcp/README.md).
+
+The front deploys to Cloudflare Workers from GitHub Actions ([`deploy-web.yml`](.github/workflows/deploy-web.yml)). Every pull request that touches it gets its own Preview (`pr-<number>`), linked from the pull request, and every merge to `main` deploys staging. OpenNext only builds a working Worker on Linux, so the Worker is always built in CI (D129, D137); on Windows, use `pnpm dev`.
+
+- **Staging:** https://focaldrop-web-staging.focaldrop.workers.dev
+- **Pull request Previews:** `https://pr-<number>-focaldrop-web-staging.focaldrop.workers.dev`
+- **Supabase staging** is on the Free plan, which pauses a project after a week without database activity. [`keep-supabase-awake.yml`](.github/workflows/keep-supabase-awake.yml) runs one query every day to keep it awake.
+
 ## Contributing
 
 - **Short-lived branches** from `main` (`feat/`, `fix/`, `chore/`, `docs/`, `ci/`, `spike/`) and **Conventional Commits** with a scope: `feat(web): add login page`.
@@ -134,9 +151,10 @@ Run from the repository root; Turborepo runs each task in every app and package 
 
 Design documents live in [`docs/`](docs/) (in Spanish):
 
-- [Project log](docs/project-log.md): every decision (D1–D128), pending items, assumptions, glossary and history.
+- [Project log](docs/project-log.md): every decision (D1–D134), pending items, assumptions, glossary and history.
 - [Architecture](docs/phase-1a-architecture.md), [data and users](docs/phase-1b-data-and-users.md), [scope and closing](docs/phase-1c-scope-and-closing.md) and [methodology](docs/phase-2-methodology.md).
-- Architecture Decision Records arrive in `docs/adr/`.
+- [Architecture Decision Records](docs/adr/README.md).
+- [Front-end design plan](docs/design/plan.md): how the public site, client gallery and admin panel are designed so they never look generic.
 
 ## Status
 

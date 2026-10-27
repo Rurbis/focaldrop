@@ -103,12 +103,13 @@ focaldrop/
 
 ```mermaid
 flowchart LR
-    I[Issue del hito] --> B["Rama feat/… desde main"]
+    T["Tomar la feature de arriba<br/>(asignarse + En curso)"] --> I[Issue del hito]
+    I --> B["Rama feat/… desde main"]
     B --> C["Commits pequeños<br/>(Conventional Commits)"]
     C --> P["PR: plantilla + checklist<br/>Closes #N"]
     P --> CI{"CI: quality + test"}
     CI -->|rojo| C
-    CI -->|verde| R["Revisión del otro<br/>≤ 48 h"]
+    CI -->|verde| R["Revisión del otro en local<br/>≤ 24 h hábiles"]
     R -->|cambios| C
     R -->|aprobado| M["Squash merge a main<br/>borra la rama"]
     M --> S["Deploy automático a staging"]
@@ -118,15 +119,17 @@ flowchart LR
 |---|---|---|
 | Nombres de rama | `feat/gallery-state-machine`, `fix/zip-utf8-names`, `chore/ci-cache`, `spike/opennext-workers`, `docs/adr-0006` | Se entiende el propósito sin abrir la rama. En inglés. |
 | Commits | **Conventional Commits** con *scope* = app o paquete: `feat(api): add gallery state machine`, `fix(web): keep session on /admin reload`. En inglés, en imperativo. | El historial se lee como changelog. Con *squash merge*, el título del PR se vuelve el commit: también sigue el formato. |
-| Tamaño del PR | Una issue por PR. Meta: < 400 líneas netas. Si crece, se parte. | Un PR grande no se revisa, se aprueba. |
-| Revisión | La otra persona revisa en ≤ 48 h. Si el PR toca interfaz, el revisor lo corre en local o en el preview. Comentarios con prefijo: `nit:` (opcional), `q:` (pregunta), sin prefijo (hay que atenderlo). | La revisión es la principal transferencia de conocimiento entre los dos (D99). |
+| Tomar trabajo (D138) | Cada issue es una **feature vertical** (BD, API, web, pruebas y documentación) de una sola persona. Al terminar algo, se toma la de más arriba de "Hito actual" que nadie tenga: primero asignarse y moverla a "En curso", después empezar. **Una feature en curso por persona**; una segunda solo si la primera está bloqueada. Al tomar una pieza compartida (esquema de BD, `@focaldrop/shared`, layouts del panel), se avisa al otro. | Ninguno espera a que el otro termine su capa, y los dos conocen el sistema completo. |
+| Tamaño del PR | Una feature por PR, de **máximo unos 2 días**. Si crece, se parte en rebanadas que funcionan de punta a punta. Meta: < 400 líneas netas. | Un PR grande no se revisa, se aprueba; y la revisión es en local. |
+| Revisión | La otra persona revisa **siempre en local**, en ≤ 24 h hábiles. Revisar va antes de empezar una feature nueva. Comentarios con prefijo: `nit:` (opcional), `q:` (pregunta), sin prefijo (hay que atenderlo). | La revisión es la principal transferencia de conocimiento entre los dos, y nadie se queda bloqueado esperándola. |
+| Bitácora (D138) | El PR no edita `docs/project-log.md`: deja una nota en `docs/log/` ([cómo](log/README.md)). Rubén integra las notas cada semana. | Dos PRs nunca chocan en la bitácora, así que mezclar uno no obliga a re-aprobar los demás. |
 | Qué revisa el revisor | El checklist de §7.3, con énfasis en: `agency_id` en toda consulta nueva, Zod en todo payload nuevo, tests de lo crítico, nada de la agencia en el código. | Son los errores que más cuestan después. |
 | Mezcla | El autor mezcla tras la aprobación y CI en verde. *Squash merge*. La rama se borra. | `main` lineal y limpio. |
 | Spikes | Rama `spike/…` que **nunca se mezcla**. El resultado va en un comentario de la issue (números, capturas, veredicto) y, si cambia una decisión, en un ADR. | El código de un spike es desechable por definición; su conocimiento no. |
 | Urgencias | Mismo flujo con etiqueta `priority:urgent`; la revisión es inmediata. | Sin atajos que después se vuelvan costumbre. |
 | Versiones | Tag `v0.<hito>.0` al cerrar cada hito con una *GitHub Release* y notas; `v1.0.0` en el hito 3. | Marca los entregables en el historial, útil para el CV. |
 
-**Migraciones de BD y ramas.** Cada migración es un archivo numerado en `apps/api/drizzle/`. Si dos PRs crean migraciones a la vez, el segundo en mezclarse la renumera (Drizzle lo detecta). Las migraciones son **aditivas y compatibles hacia atrás** (*expand/contract*): primero se agrega la columna nueva, se despliega el código que la usa, y solo después se quita la vieja en otra migración. Así el despliegue nunca depende de que el código y la BD cambien en el mismo instante.
+**Migraciones de BD y ramas.** Cada migración es un archivo numerado en `apps/api/drizzle/`. Si dos PRs crean migraciones a la vez, quien mezcla segundo actualiza su rama con `main` y regenera su migración encima (Drizzle detecta el choque). Las migraciones son **aditivas y compatibles hacia atrás** (*expand/contract*): primero se agrega la columna nueva, se despliega el código que la usa, y solo después se quita la vieja en otra migración. Así el despliegue nunca depende de que el código y la BD cambien en el mismo instante.
 
 ---
 
@@ -154,7 +157,7 @@ Supabase Free permite dos proyectos activos: exactamente staging y producción. 
 | **Bitwarden** (organización gratuita de 2 usuarios, D88) | La copia maestra de **todo**: contraseñas de cuentas, llaves de API, secretos de la app, con fecha y quién lo creó | A mano, al crearlo |
 | `.env.local` de cada app (ignorado por Git) | Secretos de desarrollo | Cada quien lo llena a partir de `.env.example` |
 | **GitHub Environments** `staging` y `production` | Secretos que usa CI para desplegar y migrar | `production` exige la **aprobación de la otra persona** antes de cada despliegue |
-| Cloud Run | Variables de entorno del servicio | Las fija el workflow de deploy desde el Environment. Si crecen, se migra a Secret Manager (nivel gratuito). |
+| Cloud Run | Variables de entorno del servicio | Las fija el workflow de deploy desde el Environment. Los secretos (`DATABASE_URL` desde la #16) vienen de **Secret Manager** (nivel gratuito): solo la cuenta de la API los lee, y no aparecen en la configuración del servicio. |
 | Cloudflare Worker | Secretos del Worker (`HMAC`, URL de la API) | `wrangler secret` desde el workflow de deploy |
 | Supabase Vault | `CRON_SECRET` (D46) | Migración que lee el valor de Vault; el valor se carga una vez por entorno |
 | Google Cloud | **Sin llaves JSON**: CI se autentica con *Workload Identity Federation* | Configuración única en la issue #7 |
@@ -167,9 +170,10 @@ Reglas: ningún secreto en el repo, en issues, en chats ni en capturas. `.env.ex
 |---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | web | Sí | Llave publicable (`sb_publishable_…`), que reemplaza a la *anon*. No abre nada: la Data API está apagada y RLS no tiene políticas para `anon` ni `authenticated` (D60, D121) |
 | `API_URL` | web | — | URL de Nest para el reenvío y las llamadas de servidor |
-| `DEFAULT_AGENCY_SLUG` | web, api | — | Solo fuera de producción (D7) |
+| `APP_ENV` | api | — | Entorno de despliegue: `development`, `test`, `staging` o `production`; por defecto `NODE_ENV`. Staging usa `NODE_ENV=production` con `APP_ENV=staging` (#13). |
+| `DEFAULT_AGENCY_SLUG` | web, api | — | Solo fuera de producción (D7); en la API lo determina `APP_ENV`. La API rechaza el arranque si producción trae un valor no vacío; staging lo recibe del secreto homónimo de su Environment. |
 | `SUPABASE_JWKS_URL`, `SUPABASE_JWT_AUDIENCE` | api | — | Validación del JWT (D57) |
-| `DATABASE_URL` | api | — | Pooler en modo transacción, puerto 6543 (D63); en local, Postgres de la CLI |
+| `DATABASE_URL` | api | — | Pooler en modo transacción, puerto 6543 (D63), con el rol `app_api`; en staging, desde el secreto `api-database-url-staging` de Secret Manager; en local, Postgres de la CLI |
 | `MIGRATIONS_DATABASE_URL` | CI (migraciones) | — | *Session pooler*, puerto 5432: las migraciones necesitan una sesión completa, y la conexión directa es solo IPv6 en el plan Free (los runners de GitHub no tienen IPv6) (D121) |
 | `SUPABASE_SECRET_KEY` | scripts de seed y de alta del owner | — | Llave secreta (`sb_secret_…`), que reemplaza a la *service_role*: API de administración de Auth. Nunca en web ni en el Worker (D121) |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_PRIVATE`, `R2_BUCKET_PUBLIC`, `R2_PUBLIC_BASE_URL` | api | — | **Solo Nest** tiene credenciales de R2 (Parte A §2.4) |
@@ -225,9 +229,10 @@ flowchart TD
 | Workflow | Disparador | Pasos | Tiempo meta |
 |---|---|---|---|
 | `ci.yml` | PR y push a `main` | pnpm con caché → Turbo `lint typecheck` (job `quality`) → Turbo `test build` con Postgres como *service container* (job `test`). Solo lo afectado desde `main` (`--filter=...[origin/main]`). | < 8 min |
-| `deploy-api.yml` | Push a `main` con cambios en `apps/api/**` o `packages/shared/**` | Autenticación por WIF → `drizzle-kit migrate` contra staging → build de la imagen (multi-stage, Node LTS slim) → push a Artifact Registry → deploy a Cloud Run staging → *smoke test* (`GET /health`). | < 6 min |
+| `deploy-api.yml` | Push a `main` con cambios en `apps/api/**` o `packages/shared/**` | Build de la imagen (multi-stage, Node 24 slim) → autenticación por WIF → push a Artifact Registry → `pnpm db:migrate` contra staging → deploy a Cloud Run staging con `DATABASE_URL` desde Secret Manager → *smoke test* (`GET /health`). La imagen se compila antes de migrar para no tocar la BD si el build falla. | < 6 min |
 | `deploy-worker.yml` | Push a `main` con cambios en `apps/zip-worker/**` o `packages/shared/**` | Tests del Worker → `wrangler deploy` al Worker de staging. | < 3 min |
 | `deploy-web.yml` | Push a `main` con cambios en `apps/web/**` o `packages/shared/**` | Si S-4 confirma Cloudflare: build con OpenNext → `wrangler deploy`. Si es Vercel: no hay workflow, lo hace la integración de Vercel. Previews por rama en ambos casos (Workers Builds o Vercel). | < 6 min |
+| `keep-supabase-awake.yml` | Diario 09:17 CDMX y `workflow_dispatch` | Una consulta (`select now()`) a la BD de staging con el secreto `DATABASE_URL`, sin registrar un deploy. Evita que el plan gratuito de Supabase pause el proyecto tras una semana sin actividad. Se quita si staging pasa a un plan de pago. | < 1 min |
 | `nightly.yml` | Diario 03:00 CDMX | `supabase start` en el runner para probar la migración completa desde cero + RLS capa 0 → Playwright contra staging (login, publicar galería, abrir galería y descargar). Falla → issue automática. | < 15 min |
 | Producción | Tag `v*.*.*` o `workflow_dispatch` | Mismos pasos de deploy, con Environment `production`: **la otra persona aprueba** antes de migrar y desplegar. | — |
 | `backup-db.yml` | Nocturno (hito 3, D4) | `supabase db dump` → cifrado con `age` (clave pública en el repo, privada en Bitwarden) → R2 respaldos → borra los de más de 30 días. Simulacro de restauración mensual (issue recurrente). | < 5 min |
@@ -274,7 +279,7 @@ Es el checklist de la plantilla de PR. El autor lo marca; el revisor lo verifica
 5. Textos de interfaz en el diccionario `es-MX` (B5), no en el componente.
 6. Nada de la agencia en el código (P4); sin secretos ni datos reales.
 7. Si toca interfaz pública o de galería: probado en un celular (o en el emulador del navegador) y con teclado.
-8. Documentación: `.env.example` si hay variable nueva; ADR si cambia una decisión; README si cambia la instalación.
+8. Documentación: `.env.example` si hay variable nueva; ADR si cambia una decisión; README si cambia la instalación; nota de bitácora en `docs/log/` (D138).
 9. Después del deploy a staging: sin errores nuevos en Sentry en las siguientes horas (lo revisa el autor).
 
 ### 7.4 Definición de "terminado" para un hito
@@ -285,25 +290,31 @@ El entregable de la Parte C §2 funciona en staging, la demo a la agencia ocurri
 
 ## 8. División del trabajo y ritmo
 
-### 8.1 Reparto (D99)
+### 8.1 Reparto (D138, antes D99)
 
-| | Compañero | Dueño del repo |
-|---|---|---|
-| **Hitos 0 y 1** | `apps/api`: Nest, Drizzle y migraciones, módulos de dominio, cron, avisos, Dockerfile. Supabase (proyectos, Auth, Vault). Sentry y UptimeRobot. | `apps/web`: Next, login, panel, galería del cliente. `apps/zip-worker`. Monorepo, CI/CD, Cloudflare, Google Cloud, cuentas y presupuestos. README. |
-| **Compartido** | `@focaldrop/shared` (quien necesite el esquema lo crea; el otro lo revisa). ADRs repartidos por área. Revisión cruzada de todo. |
-| **Hito 2 en adelante** | **Rotación por rebanadas:** cada issue de función incluye front y API, y se asigna alternando. Al cerrar el hito 1, cada quien da al otro un recorrido de una hora por su parte, grabado si se puede, para la rotación. |
+**Desde el 2026-10-23, por features verticales.** Cada issue es una feature completa (BD, API, web, pruebas y documentación) que hace una sola persona. Nadie tiene dueño fijo: la columna "Hito actual" del tablero va ordenada por prioridad, y al terminar algo cada quien toma la de más arriba que nadie tenga (§3, "Tomar trabajo").
 
-**Por qué así.** El compañero cumple su objetivo de backend con Nest desde el día uno (D56). El dueño del repo concentra lo que requiere acceso a las cuentas y a la infraestructura. En el hito 2 la rotación evita que alguno llegue a una entrevista sin poder explicar la mitad del sistema.
+| Tema | Regla |
+|---|---|
+| Elegir | La de más arriba que esté libre. Se vale preferir una de un área que uno conozca, sin brincarse una urgente. |
+| Apartar | Asignarse la issue y moverla a "En curso" **antes** de escribir código. |
+| Cuántas | Una feature en curso por persona, más las revisiones del otro. Una segunda, solo si la primera está bloqueada. |
+| Tamaño | Máximo unos 2 días; si es más, se parte en rebanadas que funcionan de punta a punta. |
+| Piezas compartidas | Esquema de BD, `@focaldrop/shared` y layouts del panel: quien los toque avisa al tomarlos. En migraciones, quien mezcla segundo regenera la suya (§3). |
+| Cuentas e infraestructura | Las configura Rubén (D116). Si una feature necesita una cuenta o un secreto, quien la tome lo pide en la issue. |
 
-**Fronteras que evitan conflictos.** Los módulos de Nest (Parte A §2.4) y las apps del monorepo. Si una issue obliga a tocar la zona del otro, se avisa en la issue antes y el PR lo revisa esa persona con más cuidado.
+**Por qué cambió.** El reparto por capas de D99 (Fabian la API y Rubén la web en los hitos 0 y 1) hacía que uno esperara al otro: el login de la web esperaba el `auth` de la API, y el panel esperaba el `tenancy`. Además, la rotación que D99 dejaba para el hito 2 llega antes: los dos conocen el sistema completo desde ahora, que es lo que importa en una entrevista.
+
+**Lo que se mantiene de D99.** Fabian sigue cumpliendo su objetivo de backend con Nest (D56), porque toda feature tiene su parte de API, y la revisión cruzada de todo.
 
 ### 8.2 Ritmo
 
 | Cuándo | Qué | Duración |
 |---|---|---|
-| Semanal, día fijo | Sincronización: tablero, bloqueos, qué toma cada quien esta semana | 30–45 min |
+| Semanal, día fijo | Llamada: tablero, bloqueos y orden de "Hito actual". Al terminar, Rubén integra las notas de `docs/log/` a la bitácora (D138). | 30 min |
+| Al tomar o terminar una feature | Mensaje corto al otro. El tablero es la fuente de verdad de quién tiene qué. | — |
 | Diario, asíncrono | Comentarios en issues y PRs. Si algo bloquea más de un día, se escribe en la issue, no se espera a la reunión. | — |
-| Primera vez que uno toca la zona del otro | Sesión en pareja | 1 h |
+| Primera vez que uno toca un área que no conoce | Sesión en pareja con quien la hizo | 1 h |
 | Cierre de hito | Demo a la agencia + retro de 20 min (qué seguir, qué cambiar, estimaciones vs. real) + ajuste del siguiente hito | 1 h |
 
 **Con la agencia:** un solo canal (WhatsApp) y un solo responsable de la comunicación (Supuesto S8: el dueño del repo). Los pendientes de la bitácora §6 llevan fecha pedida. Las peticiones de diseño entran como issues `design-feedback` (D24), nunca como mensajes sueltos.
@@ -371,6 +382,27 @@ Issues en el orden sugerido. **C** = compañero · **R** = dueño del repo. Hora
 **Suma:** R ≈ 42 h · C ≈ 35 h · **total ≈ 77 h** → 5 semanas a 15 h/semana. La Parte C estimaba 50–60 h para el hito 0; al bajar a issues la cifra sube, como suele pasar, y la Parte C se ajusta a **65–80 h, 4–5 semanas** (D109). El resto de los hitos se bajará a issues en su semana 1 y se corregirá igual.
 
 **Qué no está en el hito 0 a propósito:** el Worker de ZIP (su esqueleto es la primera issue de S-2, hito 1), R2 (se activa al empezar la subida), Google como login, y cualquier tabla más allá de las cuatro de la plataforma (D89).
+
+### 9.1 Re-corte por features (D138, 2026-10-23)
+
+Lo que faltaba del hito 0 se reagrupa en features verticales. Lo que ya estaba en un PR se queda como está. El orden de la tabla es el de "Hito actual" en el tablero.
+
+| # | Feature | Junta | Qué entrega de punta a punta | Estado al aprobar |
+|---|---|---|---|---|
+| F1 | La web reconoce la agencia por su dominio | #13 + #19 | API: `X-Tenant-Host`, contexto por petición y `GET /public/tenant` (PR #61). Web: `getAgencyByHost` con caché etiquetada y reenvío same-origin de `/api/*` a Nest. | En curso: Fabian, con el PR #61 |
+| F2 | La API vive en staging | #16 | Dockerfile, `deploy-api.yml` con WIF, migraciones contra staging y *smoke test*. | Para tomar ya: no depende de las demás |
+| F3 | El owner ve su perfil y su agencia | #12 + #20 | API: `AuthGuard` con JWKS y `GET /admin/me`. Web: `/admin` con el nombre del owner y de la agencia, estados de carga y error, y un 401 que lleva al login. | Para tomar cuando entren F1 y el login (#49) |
+| F4 | Errores del front en Sentry | #22 (2.º PR) | `@sentry/nextjs` con `sendDefaultPii: false` (D86). | Rubén, al mezclar el #59 |
+| F5 | Aislamiento entre agencias | #14 | `TenantGuard`, `RolesGuard`, repositorio base y e2e: un usuario de la agencia A pide un recurso de la B y recibe 404. | Para tomar después de F1 y F3 |
+| F6 | Cerrar la S-4 | #21 + ADR-0010 de #25 | CPU por petición en staging, `proxy.ts`, `revalidateTag` y la ADR del host. | Para tomar después de F3 |
+| — | Documentación | #24, #26 | ADRs 0001, 0003, 0004 y 0013, y `CLAUDE.md`. | Para tomar |
+| — | Pantallas del panel con la marca | #53 (A3) | Login, recuperación y panel con el sistema de diseño. | Para tomar cuando entren #49 y #56 |
+| — | Cierre del hito | #27 | Demo, retro, tag `v0.0.1` y tablero del hito 1, ya en features. | Ambos |
+
+**Cambios en el tablero** (Rubén, al aprobarse):
+- Se copian los criterios de #19 a #13 y los de #20 a #12, y se cierran #19 y #20 como "integradas en".
+- Las issues que nadie ha empezado (#12, #14, #16, #21, #24, #25 y #26) quedan sin asignar, listas para tomar.
+- "Hito actual" se ordena como esta tabla.
 
 ---
 

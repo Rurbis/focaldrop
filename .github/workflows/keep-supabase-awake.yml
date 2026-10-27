@@ -1,0 +1,33 @@
+# Keeps the Supabase staging project from pausing. Free plan projects pause
+# after a week without enough user database activity, and "a few user requests
+# to the database each day" is enough to prevent it:
+# https://supabase.com/docs/guides/platform/free-project-pausing
+# A paused project breaks the staging login, the PR previews and the API
+# migrations, so this runs one small query every day. Remove it if staging
+# moves to a paid plan.
+#
+# GitHub disables scheduled workflows in public repos after 60 days without
+# repository activity. A failed run emails whoever last changed the schedule.
+name: Keep Supabase staging awake
+
+on:
+  schedule:
+    - cron: '17 15 * * *' # Every day at 09:17 in Mexico City.
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  query:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Uses the staging secrets without recording a deployment every day.
+    environment:
+      name: staging
+      deployment: false
+    steps:
+      - name: Run one query against the staging database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        # psql comes preinstalled on the Ubuntu runners.
+        run: psql "$DATABASE_URL" --no-psqlrc --tuples-only -v ON_ERROR_STOP=1 -c 'select now()'
