@@ -84,7 +84,7 @@ docs/             Decision log and design documents (Spanish)
 
 ## Getting started
 
-**Prerequisites:** Git, Node.js 24 (see `.nvmrc`), pnpm 10.34.6 and Docker Desktop with the Linux engine running.
+**Prerequisites:** Git, Node.js 24.22.1 or a later 24.x (see `.nvmrc`), pnpm 10.34.6 and Docker Desktop with the Linux engine running.
 
 ```bash
 npm install -g pnpm@10.34.6
