@@ -4,8 +4,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "focaldrop-web-staging",
-  // worker.ts wraps .open-next/worker.js with Sentry (#22).
-  "main": "worker.ts",
+  "main": ".open-next/worker.js",
   // 2025-08-16 or later is required by the Sentry SDK (https.request).
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],

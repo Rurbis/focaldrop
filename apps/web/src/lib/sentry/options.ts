@@ -17,9 +17,9 @@ export const SENTRY_DATA_COLLECTION = {
   stackFrameVariables: false,
 } satisfies NonNullable<SentryOptions['dataCollection']>;
 
-// Shared by the browser, the Worker and `next dev`. Each one adds the DSN it
-// can read; without a DSN Sentry stays off, so local development and pull
-// requests from forks never send events.
+// Browser options (src/instrumentation-client.ts adds the DSN). Without a DSN
+// Sentry stays off, so local development and pull requests from forks never
+// send events.
 export const SENTRY_BASE_OPTIONS = {
   dataCollection: SENTRY_DATA_COLLECTION,
   // Errors only (D86): no performance tracing, Session Replay or logs.

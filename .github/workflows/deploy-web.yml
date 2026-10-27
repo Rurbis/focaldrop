@@ -67,15 +67,12 @@ jobs:
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/build-web
 
-      # worker.ts reads the DSN from Worker variables: Wrangler bundles it, not
-      # Next, so the NEXT_PUBLIC_* values above are not inlined there.
       - name: Deploy to staging
         id: deploy
         env:
           WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
         run: |
-          pnpm --filter @focaldrop/web cf:deploy \
-            --var "SENTRY_DSN:$NEXT_PUBLIC_SENTRY_DSN" --var "SENTRY_ENVIRONMENT:$NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+          pnpm --filter @focaldrop/web cf:deploy
           url=$(jq -r 'select(.type == "deploy") | .targets[]?' "$WRANGLER_OUTPUT_FILE_PATH" | grep -m 1 '^https://')
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -122,8 +119,7 @@ jobs:
         env:
           WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
         run: |
-          pnpm --filter @focaldrop/web cf:preview --name "$PREVIEW_NAME" \
-            --var "SENTRY_DSN:$NEXT_PUBLIC_SENTRY_DSN" --var "SENTRY_ENVIRONMENT:$NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+          pnpm --filter @focaldrop/web cf:preview --name "$PREVIEW_NAME"
           url=$(jq -r 'select(.type == "preview") | .preview_urls[]?' "$WRANGLER_OUTPUT_FILE_PATH" | grep -m 1 '^https://')
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
