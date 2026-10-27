@@ -136,6 +136,7 @@ El front se despliega a Cloudflare Workers desde GitHub Actions ([`deploy-web.ym
 
 - **Staging:** https://focaldrop-web-staging.focaldrop.workers.dev
 - **Previews de los PRs:** `https://pr-<número>-focaldrop-web-staging.focaldrop.workers.dev`
+- **Supabase de staging** está en el plan gratuito, que pausa un proyecto tras una semana sin actividad en la BD. [`keep-supabase-awake.yml`](.github/workflows/keep-supabase-awake.yml) hace una consulta diaria para mantenerlo activo.
 
 ## Cómo contribuir
 
