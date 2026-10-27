@@ -1,6 +1,6 @@
 # feat(web): report front-end errors to sentry with source maps
 
-Issue: #22 · PR: (este) · Autor: Rubén
+Issue: #22 · PR: #76 · Autor: Rubén
 
 ## Decisiones
 
