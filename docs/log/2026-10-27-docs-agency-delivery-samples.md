@@ -1,6 +1,6 @@
 # docs(log): record the agency's delivery samples and keep videos download-only
 
-Issue: — · PR: (este) · Autor: Rubén
+Issue: — · PR: #77 · Autor: Rubén
 
 ## Decisiones
 
