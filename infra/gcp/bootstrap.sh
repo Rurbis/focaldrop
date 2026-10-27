@@ -17,6 +17,7 @@ AR_REPO='focaldrop'              # Artifact Registry repository for the API imag
 POOL='github'                    # Workload Identity pool
 PROVIDER='github-actions'        # OIDC provider inside the pool
 BUDGET_TOPIC='billing-alerts'    # Pub/Sub topic the budget publishes to
+DB_SECRET='api-database-url-staging'  # Secret Manager secret with the API's DATABASE_URL
 # Immutable GitHub IDs of Rurbis/focaldrop. Names can be renamed or reused;
 # IDs cannot, so access is granted by ID.
 GITHUB_REPO_ID='1414983088'
@@ -47,7 +48,8 @@ gcloud services enable \
   pubsub.googleapis.com \
   cloudfunctions.googleapis.com \
   cloudbuild.googleapis.com \
-  eventarc.googleapis.com
+  eventarc.googleapis.com \
+  secretmanager.googleapis.com
 
 BILLING_ACCOUNT="$(gcloud billing projects describe "${PROJECT_ID}" --format='value(billingAccountName)')"
 if [[ -z "${BILLING_ACCOUNT}" ]]; then
@@ -104,6 +106,20 @@ gcloud artifacts repositories add-iam-policy-binding "${AR_REPO}" \
 gcloud iam service-accounts add-iam-policy-binding "${RUNTIME_SA}" \
   --member="serviceAccount:${DEPLOYER_SA}" \
   --role='roles/iam.serviceAccountUser' >/dev/null
+
+step "Secret ${DB_SECRET}"
+# The API's connection string lives in Secret Manager, not in the Cloud Run
+# configuration, where anyone who can view the service would read it. The
+# script only creates the empty secret: its value is added by hand (README).
+if ! gcloud secrets describe "${DB_SECRET}" >/dev/null 2>&1; then
+  gcloud secrets create "${DB_SECRET}" \
+    --replication-policy=user-managed \
+    --locations="${REGION}"
+fi
+# Only the API reads it. The deployer only references it in the deploy.
+gcloud secrets add-iam-policy-binding "${DB_SECRET}" \
+  --member="serviceAccount:${RUNTIME_SA}" \
+  --role='roles/secretmanager.secretAccessor' >/dev/null
 
 step "Workload Identity Federation (${POOL}/${PROVIDER})"
 if ! gcloud iam workload-identity-pools describe "${POOL}" --location=global >/dev/null 2>&1; then
@@ -176,6 +192,10 @@ for sa in "${RUNTIME_SA}" "${DEPLOYER_SA}" "${GUARD_SA}" "${BUILDER_SA}"; do
   fi
 done
 echo 'OK: no user-managed keys.'
+
+if [[ -z "$(gcloud secrets versions list "${DB_SECRET}" --filter='state=ENABLED' --limit=1 --format='value(name)')" ]]; then
+  echo "WARNING: ${DB_SECRET} has no value yet; the API deploy fails until it does (README)." >&2
+fi
 
 PROVIDER_NAME="$(gcloud iam workload-identity-pools providers describe "${PROVIDER}" \
   --location=global --workload-identity-pool="${POOL}" --format='value(name)')"

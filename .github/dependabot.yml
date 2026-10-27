@@ -55,3 +55,22 @@ updates:
     labels: ['type:chore', 'area:infra']
     commit-message:
       prefix: 'chore(deps)'
+
+  # Base image of the API (apps/api/Dockerfile), pinned by digest.
+  - package-ecosystem: 'docker'
+    directory: '/apps/api'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Mexico_City'
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 14
+    ignore:
+      # The image follows the Node major in .nvmrc (D114): bump them together.
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']
+    labels: ['type:chore', 'area:infra']
+    commit-message:
+      prefix: 'chore(deps)'

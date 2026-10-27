@@ -5,6 +5,9 @@
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",

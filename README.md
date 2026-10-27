@@ -132,6 +132,8 @@ Run from the repository root; Turborepo runs each task in every app and package 
 
 ## Deployments
 
+The API deploys to Cloud Run from GitHub Actions ([`deploy-api.yml`](.github/workflows/deploy-api.yml)). Every merge to `main` that touches it builds the image, migrates the staging database and deploys: https://focaldrop-api-staging-664538226545.us-east4.run.app/health. The one-time setup is in [infra/gcp/README.md](infra/gcp/README.md).
+
 The front deploys to Cloudflare Workers from GitHub Actions ([`deploy-web.yml`](.github/workflows/deploy-web.yml)). Every pull request that touches it gets its own Preview (`pr-<number>`), linked from the pull request, and every merge to `main` deploys staging. OpenNext only builds a working Worker on Linux, so the Worker is always built in CI (D129, D137); on Windows, use `pnpm dev`.
 
 - **Staging:** https://focaldrop-web-staging.focaldrop.workers.dev

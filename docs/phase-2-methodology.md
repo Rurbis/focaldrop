@@ -157,7 +157,7 @@ Supabase Free permite dos proyectos activos: exactamente staging y producción. 
 | **Bitwarden** (organización gratuita de 2 usuarios, D88) | La copia maestra de **todo**: contraseñas de cuentas, llaves de API, secretos de la app, con fecha y quién lo creó | A mano, al crearlo |
 | `.env.local` de cada app (ignorado por Git) | Secretos de desarrollo | Cada quien lo llena a partir de `.env.example` |
 | **GitHub Environments** `staging` y `production` | Secretos que usa CI para desplegar y migrar | `production` exige la **aprobación de la otra persona** antes de cada despliegue |
-| Cloud Run | Variables de entorno del servicio | Las fija el workflow de deploy desde el Environment. Si crecen, se migra a Secret Manager (nivel gratuito). |
+| Cloud Run | Variables de entorno del servicio | Las fija el workflow de deploy desde el Environment. Los secretos (`DATABASE_URL` desde la #16) vienen de **Secret Manager** (nivel gratuito): solo la cuenta de la API los lee, y no aparecen en la configuración del servicio. |
 | Cloudflare Worker | Secretos del Worker (`HMAC`, URL de la API) | `wrangler secret` desde el workflow de deploy |
 | Supabase Vault | `CRON_SECRET` (D46) | Migración que lee el valor de Vault; el valor se carga una vez por entorno |
 | Google Cloud | **Sin llaves JSON**: CI se autentica con *Workload Identity Federation* | Configuración única en la issue #7 |
@@ -172,7 +172,7 @@ Reglas: ningún secreto en el repo, en issues, en chats ni en capturas. `.env.ex
 | `API_URL` | web | — | URL de Nest para el reenvío y las llamadas de servidor |
 | `DEFAULT_AGENCY_SLUG` | web, api | — | Solo fuera de producción (D7) |
 | `SUPABASE_JWKS_URL`, `SUPABASE_JWT_AUDIENCE` | api | — | Validación del JWT (D57) |
-| `DATABASE_URL` | api | — | Pooler en modo transacción, puerto 6543 (D63); en local, Postgres de la CLI |
+| `DATABASE_URL` | api | — | Pooler en modo transacción, puerto 6543 (D63), con el rol `app_api`; en staging, desde el secreto `api-database-url-staging` de Secret Manager; en local, Postgres de la CLI |
 | `MIGRATIONS_DATABASE_URL` | CI (migraciones) | — | *Session pooler*, puerto 5432: las migraciones necesitan una sesión completa, y la conexión directa es solo IPv6 en el plan Free (los runners de GitHub no tienen IPv6) (D121) |
 | `SUPABASE_SECRET_KEY` | scripts de seed y de alta del owner | — | Llave secreta (`sb_secret_…`), que reemplaza a la *service_role*: API de administración de Auth. Nunca en web ni en el Worker (D121) |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_PRIVATE`, `R2_BUCKET_PUBLIC`, `R2_PUBLIC_BASE_URL` | api | — | **Solo Nest** tiene credenciales de R2 (Parte A §2.4) |
@@ -228,7 +228,7 @@ flowchart TD
 | Workflow | Disparador | Pasos | Tiempo meta |
 |---|---|---|---|
 | `ci.yml` | PR y push a `main` | pnpm con caché → Turbo `lint typecheck` (job `quality`) → Turbo `test build` con Postgres como *service container* (job `test`). Solo lo afectado desde `main` (`--filter=...[origin/main]`). | < 8 min |
-| `deploy-api.yml` | Push a `main` con cambios en `apps/api/**` o `packages/shared/**` | Autenticación por WIF → `drizzle-kit migrate` contra staging → build de la imagen (multi-stage, Node LTS slim) → push a Artifact Registry → deploy a Cloud Run staging → *smoke test* (`GET /health`). | < 6 min |
+| `deploy-api.yml` | Push a `main` con cambios en `apps/api/**` o `packages/shared/**` | Build de la imagen (multi-stage, Node 24 slim) → autenticación por WIF → push a Artifact Registry → `pnpm db:migrate` contra staging → deploy a Cloud Run staging con `DATABASE_URL` desde Secret Manager → *smoke test* (`GET /health`). La imagen se compila antes de migrar para no tocar la BD si el build falla. | < 6 min |
 | `deploy-worker.yml` | Push a `main` con cambios en `apps/zip-worker/**` o `packages/shared/**` | Tests del Worker → `wrangler deploy` al Worker de staging. | < 3 min |
 | `deploy-web.yml` | Push a `main` con cambios en `apps/web/**` o `packages/shared/**` | Si S-4 confirma Cloudflare: build con OpenNext → `wrangler deploy`. Si es Vercel: no hay workflow, lo hace la integración de Vercel. Previews por rama en ambos casos (Workers Builds o Vercel). | < 6 min |
 | `keep-supabase-awake.yml` | Diario 09:17 CDMX y `workflow_dispatch` | Una consulta (`select now()`) a la BD de staging con el secreto `DATABASE_URL`, sin registrar un deploy. Evita que el plan gratuito de Supabase pause el proyecto tras una semana sin actividad. Se quita si staging pasa a un plan de pago. | < 1 min |
