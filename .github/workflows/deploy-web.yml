@@ -58,6 +58,10 @@ jobs:
       # Public values, inlined into the browser bundle at build time.
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+      WEB_BUILD_ID: staging-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      WEB_CACHE_STAGING_D1_ID: ${{ vars.WEB_CACHE_STAGING_D1_ID }}
+      WEB_CACHE_PREVIEW_D1_ID: ${{ vars.WEB_CACHE_PREVIEW_D1_ID }}
+      AGENCY_CACHE_REVALIDATION_SECRET: ${{ secrets.AGENCY_CACHE_REVALIDATION_SECRET }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup
@@ -78,7 +82,7 @@ jobs:
         env:
           URL: ${{ steps.deploy.outputs.url }}
         run: |
-          for path in / /admin/login; do
+          for path in / /admin/login /api/public/tenant; do
             curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
           done
 
@@ -99,6 +103,10 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
       PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
+      WEB_BUILD_ID: pr-${{ github.event.pull_request.number }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      WEB_CACHE_STAGING_D1_ID: ${{ vars.WEB_CACHE_STAGING_D1_ID }}
+      WEB_CACHE_PREVIEW_D1_ID: ${{ vars.WEB_CACHE_PREVIEW_D1_ID }}
+      AGENCY_CACHE_REVALIDATION_SECRET: ${{ secrets.AGENCY_CACHE_REVALIDATION_SECRET }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup
@@ -106,9 +114,13 @@ jobs:
 
       # Forks and Dependabot get no secrets: their PRs stop after the build
       # and the size check, which still catch a broken or oversized Worker.
+      - name: Check Preview deployment setup
+        id: preview-setup
+        run: pnpm --filter @focaldrop/web cf:check-preview
+
       - name: Publish the Preview
         id: preview
-        if: env.CLOUDFLARE_API_TOKEN != ''
+        if: steps.preview-setup.outputs.ready == 'true'
         env:
           WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
         run: |
@@ -122,7 +134,7 @@ jobs:
         env:
           URL: ${{ steps.preview.outputs.url }}
         run: |
-          for path in / /admin/login; do
+          for path in / /admin/login /api/public/tenant; do
             curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
           done
 
