@@ -5,7 +5,7 @@ Next.js 16 (App Router) front of Focal Drop: the admin panel today, and the publ
 ## Local setup
 
 1. Start local Supabase from the repository root (`pnpm db:start`, see [`infra/supabase/README.md`](../../infra/supabase/README.md)).
-2. Copy [`.env.example`](.env.example) to `apps/web/.env.local` and fill it with `API_URL` and `PUBLISHABLE_KEY` from `infra/supabase/.env.local`. Git ignores the file.
+2. Copy [`.env.example`](.env.example) to `apps/web/.env.local`. Map Supabase's `API_URL` to `NEXT_PUBLIC_SUPABASE_URL` and `PUBLISHABLE_KEY` to `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. The separate `API_URL` setting points to Nest (`http://127.0.0.1:3001` locally). Git ignores the file.
 3. Create a user to sign in with. Public sign-up is closed (D94), so use the Auth admin API as the Supabase guide explains, until the seed of issue #15 creates the demo owner.
 4. Run `pnpm --filter @focaldrop/web dev` and open <http://localhost:3000/admin>.
 
