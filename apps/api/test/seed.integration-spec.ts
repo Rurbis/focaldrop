@@ -5,7 +5,7 @@ import { createDatabase } from '../src/db/database.js';
 import { LOCAL_DEMO } from '../src/db/demo.js';
 import { migrateDatabase } from '../src/db/migrate.js';
 import { agencies, agencyDomains, agencyMembers, profiles } from '../src/db/schema/index.js';
-import { seedDemo } from '../src/db/seed.js';
+import { provisionAgency, seedDemo } from '../src/db/seed.js';
 import { createTestDatabase } from './helpers/database.js';
 
 const describeWithDatabase = describe.skipIf(!process.env.TEST_DATABASE_URL && !process.env.CI);
@@ -78,5 +78,45 @@ describeWithDatabase('idempotent local demo data', () => {
     await expect(seedDemo(database.db, auth)).rejects.toThrow(/already assigned/);
     expect(await database.db.select().from(agencies)).toHaveLength(1);
     expect(await database.db.select().from(agencyMembers)).toHaveLength(0);
+  });
+
+  it('provisions another agency next to the demo, once, on a platform host', async () => {
+    const spec = {
+      slug: 'synthetic-staging',
+      agencyName: 'Synthetic staging agency',
+      hostname: 'staging.example.invalid',
+      domainKind: 'platform_subdomain',
+      ownerEmail: 'owner@example.invalid',
+      ownerName: 'Synthetic owner',
+    } as const;
+    await fixture.client`TRUNCATE agency_members, agency_domains, profiles, agencies`;
+    await seedDemo(database.db, auth);
+    const first = await provisionAgency(database.db, auth, spec);
+    await expect(provisionAgency(database.db, auth, spec)).resolves.toEqual(first);
+    expect(await database.db.select().from(agencies)).toHaveLength(2);
+    expect(
+      await database.db
+        .select()
+        .from(agencyDomains)
+        .where(eq(agencyDomains.hostname, spec.hostname)),
+    ).toEqual([expect.objectContaining({ agencyId: first.agencyId, kind: 'platform_subdomain' })]);
+  });
+
+  it('refuses a slug that belongs to an agency with another owner email', async () => {
+    await fixture.client`TRUNCATE agency_members, agency_domains, profiles, agencies`;
+    await database.db
+      .insert(agencies)
+      .values({ slug: 'taken', name: 'Other agency', notificationEmail: 'other@example.invalid' });
+    await expect(
+      provisionAgency(database.db, auth, {
+        slug: 'taken',
+        agencyName: 'Synthetic',
+        hostname: 'taken.example.invalid',
+        domainKind: 'platform_subdomain',
+        ownerEmail: 'owner@example.invalid',
+        ownerName: 'Synthetic owner',
+      }),
+    ).rejects.toThrow(/already used by another agency/);
+    expect(await database.db.select().from(agencyDomains)).toHaveLength(0);
   });
 });
