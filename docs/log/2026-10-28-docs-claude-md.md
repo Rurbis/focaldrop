@@ -1,6 +1,6 @@
 # docs: add the guide for coding agents (claude.md)
 
-Issue: #26 · PR: (este) · Autor: Rubén
+Issue: #26 · PR: #81 · Autor: Rubén
 
 ## Historial
 
