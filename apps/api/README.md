@@ -191,7 +191,7 @@ files change, so unrelated web or documentation PRs skip it.
 
 `pnpm db:provision` creates or reuses one agency, its primary domain, its owner's Auth account, profile and `owner` membership in **staging or production**; the local demo stays `pnpm db:seed`. It shares `provisionAgency()` with the seed (`src/db/seed.ts`): running it again changes nothing, and it never takes a slug or hostname from another agency.
 
-- **No passwords.** A new owner account is created confirmed and without a password; the owner sets one with "forgot password" on `/admin/login`. An existing account with that email is reused as it is.
+- **No passwords.** A new owner account is created confirmed and without a password; the owner sets one with "forgot password" on `/admin/login`. An existing account with that email is reused as it is. Supabase only lets you edit the recovery email with custom SMTP, and its default email does not work with `/admin/auth/confirm` (D133). So until staging has SMTP, create the owner first in the Supabase dashboard (Authentication, Users, Add user, with _Auto Confirm User_), with a password from Bitwarden; the workflow then reuses that account.
 - **Guards.** `PROVISION_TARGET` must be `staging` or `production`, and production also needs `--confirm-production`. It reads no `.env` file, so local settings never reach a remote database. Errors name the invalid variables, never their values.
 - **Variables:** `PROVISION_TARGET`, `MIGRATIONS_DATABASE_URL` (session pooler, administrator), `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `AGENCY_SLUG`, `AGENCY_NAME`, `AGENCY_HOSTNAME`, `OWNER_EMAIL` and, optionally, `OWNER_NAME` (defaults to the agency name).
 

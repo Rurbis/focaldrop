@@ -21,4 +21,5 @@ Issue: #71 · PR: #79 · Autor: Rubén
 ## Pendientes
 
 - Rubén crea en el Environment `staging` los secretos `SUPABASE_SECRET_KEY`, `DEFAULT_AGENCY_SLUG`, `STAGING_AGENCY_NAME` y `STAGING_OWNER_EMAIL`, y al mezclar corre el workflow.
-- El owner define su contraseña con "¿Olvidaste tu contraseña?". Antes hay que cargar en Supabase staging la plantilla de recuperación (`infra/supabase/templates/recovery.html`).
+- **Supabase solo deja editar la plantilla de recuperación con SMTP propio** (lo comprobó Rubén el 2026-10-28), y su correo por defecto no funciona con `/admin/auth/confirm` (D133). Mientras staging no tenga SMTP, el owner se crea antes en el dashboard de Supabase, con contraseña de Bitwarden, y el workflow lo reutiliza.
+- **SMTP propio con Resend** (D: Resend + React Email; dominio de la plataforma en Cloudflare): hace falta para la recuperación de contraseña en staging y, sobre todo, antes de producción (hito 3).
