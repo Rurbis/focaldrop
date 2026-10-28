@@ -1,6 +1,6 @@
 # Resolución de agencia y reenvío desde Next — F1
 
-Issue: #13 · PR: por asignar · Autor: Fabian
+Issue: #13 · PR: #78 · Autor: Fabian
 
 ## Decisiones
 
