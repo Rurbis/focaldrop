@@ -1,6 +1,6 @@
 # Caché persistente de la web — propuesta separada para F6
 
-Issue: #21 · PR: pendiente · Autor: Fabian
+Issue: #21 · PR: #82 · Autor: Fabian
 
 ## Decisiones
 
