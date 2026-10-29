@@ -10,6 +10,7 @@ import type { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/bootstrap.js';
 import { SENTRY_DATA_COLLECTION } from '../src/constants/sentry.constants.js';
+import { DatabaseService } from '../src/db/database.module.js';
 
 @Controller('__test-body')
 class EchoController {
@@ -46,7 +47,10 @@ describe('Request body parsing (e2e)', () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
       controllers: [EchoController],
-    }).compile();
+    })
+      .overrideProvider(DatabaseService)
+      .useValue({})
+      .compile();
 
     const nestApp = moduleFixture.createNestApplication<NestExpressApplication>({ logger: false });
     configureApp(nestApp);

@@ -81,13 +81,14 @@ jobs:
         id: deploy
         env:
           SENTRY_DSN: ${{ vars.API_SENTRY_DSN }}
+          DEFAULT_AGENCY_SLUG: ${{ secrets.DEFAULT_AGENCY_SLUG }}
         run: |
           gcloud run deploy "$SERVICE" \
             --image="$IMAGE" \
             --region="$REGION" \
             --service-account="$RUNTIME_SA" \
             --max-instances=2 \
-            --set-env-vars="NODE_ENV=production,SENTRY_ENVIRONMENT=staging,SENTRY_DSN=${SENTRY_DSN}" \
+            --set-env-vars="NODE_ENV=production,APP_ENV=staging,DEFAULT_AGENCY_SLUG=${DEFAULT_AGENCY_SLUG},SENTRY_ENVIRONMENT=staging,SENTRY_DSN=${SENTRY_DSN}" \
             --set-secrets="DATABASE_URL=${DB_SECRET}:latest" \
             --quiet
           url=$(gcloud run services describe "$SERVICE" --region="$REGION" --format='value(status.url)')

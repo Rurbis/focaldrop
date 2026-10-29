@@ -93,6 +93,15 @@ printf '%s' "$DB_URL" | gcloud secrets versions add api-database-url-staging --d
 
 The deploy reads the `latest` version when each instance starts. After rotating the password, add a new version and deploy again.
 
+**Tenant fallback in staging (#13).** The workflow sets `NODE_ENV=production`
+and `APP_ENV=staging` independently. After provisioning the staging agency
+(#71), add its existing slug as the `DEFAULT_AGENCY_SLUG` secret in GitHub's
+`staging` Environment. The workflow passes it to the API without exposing the
+agency's name in public build logs. An absent/empty secret disables fallback;
+unknown hosts return 404 until an agency/default is configured. Production
+must use `APP_ENV=production` and omit this default: a nonempty value stops
+the API before startup. `SENTRY_ENVIRONMENT` never controls tenant resolution.
+
 **3. The public service.** The deployer can deploy (`run.developer`) but not change who may call a service, and in this organization `allUsers` is rejected (domain restricted sharing). So the service is created once, public, with Google's sample image; every deploy afterwards replaces the image and keeps the setting:
 
 ```bash

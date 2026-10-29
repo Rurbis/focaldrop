@@ -10,7 +10,7 @@ describe('initializeSentry', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('does not initialize the SDK when the DSN is absent', () => {
-    initializeSentry({ NODE_ENV: 'development', PORT: 3001 });
+    initializeSentry({ NODE_ENV: 'development', APP_ENV: 'development', PORT: 3001 });
 
     expect(Sentry.init).not.toHaveBeenCalled();
   });
@@ -18,6 +18,7 @@ describe('initializeSentry', () => {
   it('disables default PII and uses the application environment and release', () => {
     initializeSentry({
       NODE_ENV: 'production',
+      APP_ENV: 'production',
       PORT: 3001,
       SENTRY_DSN: 'https://public@example.invalid/1',
     });
@@ -45,6 +46,7 @@ describe('initializeSentry', () => {
   it('uses SENTRY_ENVIRONMENT when supplied', () => {
     initializeSentry({
       NODE_ENV: 'production',
+      APP_ENV: 'staging',
       PORT: 3001,
       SENTRY_DSN: 'https://public@example.invalid/1',
       SENTRY_ENVIRONMENT: 'staging',
