@@ -13,6 +13,7 @@ Issue: #13 · PR: #78 · Autor: Fabian
 
 - 2026-10-28: parte web de F1 sobre el PR #61: resolución y validación pública de agencia y reenvío con sesión verificada, con pruebas de fronteras HTTP.
 - 2026-10-29: revisión del #78: la caché persistente se separa de F1. El verificador usa Next compilado y una API sintética para comprobar lecturas nuevas por petición, separación de hosts, exclusión de campos privados y recuperación tras errores. El smoke de staging exige una agencia real aprovisionada por #79; no acepta un 404 como éxito.
+- El #61 quedó integrado en `main` y sus despliegues de API y web terminaron correctamente. La propuesta separada de caché está en el borrador #82, asociado a F6/S-4.
 
 ## Tiempo
 
@@ -20,7 +21,7 @@ Estimación original de la parte web: 3 h. Implementación inicial y validación
 
 ## Pendientes
 
-- Integrar #61 y reapuntar el #78 a `main`, conservando únicamente los cambios de la web.
+- Revisión del núcleo web del #78 sobre `main`.
 - Aprovisionar agencia/dominio de staging con #79 (#71), y comprobar `/api/public/tenant` en la preview publicada.
 - F6 (#21): caché persistente, etiqueta `agency-domains`, medición de CPU/tamaño y ADR-0010. Next 16 recomienda `use cache`; su compatibilidad y la invalidación deben verificarse en el Worker, además de en Next local. La implementación anterior se conserva en el historial del #78 (`30c6c99`) como referencia, no como decisión de infraestructura aprobada.
 - F3 (#12) empieza después de integrar F1. La recuperación de contraseñas en staging sigue dependiendo del SMTP documentado en #79.
