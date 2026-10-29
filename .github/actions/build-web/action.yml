@@ -19,10 +19,6 @@ runs:
       shell: bash
       run: pnpm --filter @focaldrop/web test:integration:f1
 
-    - name: Verify deployment configuration boundaries
-      shell: bash
-      run: pnpm --filter @focaldrop/web test:deployment
-
     # Workers Free accepts up to 3 MiB (3,072 KiB) compressed. Failing at
     # 2.75 MiB leaves room to react before a deploy is rejected.
     - name: Check the Worker size

@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
 import { once } from 'node:events';
 import { createServer, request as httpRequest } from 'node:http';
 import { createRequire } from 'node:module';
@@ -11,7 +10,6 @@ const require = createRequire(import.meta.url);
 const webDirectory = fileURLToPath(new URL('../', import.meta.url));
 const port = Number(process.env.F1_TEST_PORT ?? 3310);
 const baseUrl = `http://127.0.0.1:${port}`;
-const secret = randomBytes(32).toString('hex');
 
 function agency(id, slug, name) {
   return {
@@ -74,7 +72,6 @@ const child = spawn(
     env: {
       ...process.env,
       API_URL: `http://127.0.0.1:${address.port}`,
-      AGENCY_CACHE_REVALIDATION_SECRET: secret,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321',
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_integration_test',
@@ -136,13 +133,6 @@ async function localRequest(path, options = {}) {
 async function tenant(host, extraHeaders = {}) {
   return localRequest('/api/public/tenant', { headers: { Host: host, ...extraHeaders } });
 }
-async function invalidate() {
-  const response = await localRequest('/api/cache/agency-domains', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${secret}` },
-  });
-  assert.equal(response.status, 204);
-}
 
 try {
   await eventually(async () => {
@@ -167,27 +157,13 @@ try {
     'X-Forwarded-Host': 'beta.test',
   });
   assert.equal((await response.json()).id, alpha.id);
-  await eventually(async () => {
-    const before = calls.get('alpha.test');
-    const cached = await tenant('alpha.test');
-    await cached.json();
-    return calls.get('alpha.test') === before;
-  });
+  const before = calls.get('alpha.test');
   agencies.set('alpha.test', { ...agencies.get('alpha.test'), name: 'Alpha updated' });
   response = await tenant('alpha.test');
-  assert.equal((await response.json()).name, 'Alpha original');
+  assert.equal((await response.json()).name, 'Alpha updated');
+  assert.equal(calls.get('alpha.test'), before + 1);
   response = await localRequest('/api/cache/agency-domains', { method: 'POST' });
-  assert.equal(response.status, 401);
-  response = await localRequest('/api/cache/agency-domains', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${'x'.repeat(secret.length)}` },
-  });
-  assert.equal(response.status, 401);
-  await invalidate();
-  await eventually(async () => {
-    const refreshed = await tenant('alpha.test');
-    return (await refreshed.json()).name === 'Alpha updated';
-  });
+  assert.equal(response.status, 404);
   response = await tenant('new.test');
   assert.equal(response.status, 404);
   agencies.set(
@@ -248,7 +224,7 @@ try {
   });
   assert.equal(response.status, 403);
   console.log(
-    'F1 integration verification passed: real Next cache, tags, hosts and HTTP boundaries.',
+    'F1 integration verification passed: fresh tenant lookups, hosts and HTTP boundaries.',
   );
 } finally {
   if (child.exitCode === null && child.signalCode === null) {

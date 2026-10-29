@@ -12,13 +12,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration:f1": "node scripts/verify-f1.mjs",
-    "test:deployment": "node --test scripts/cloudflare-config.test.mjs",
     "cf:build": "opennextjs-cloudflare build",
     "cf:local": "opennextjs-cloudflare preview",
     "cf:size": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
-    "cf:deploy": "node scripts/deploy-cloudflare.mjs staging",
-    "cf:preview": "node scripts/deploy-cloudflare.mjs preview",
-    "cf:check-preview": "node scripts/deploy-cloudflare.mjs check-preview"
+    "cf:deploy": "opennextjs-cloudflare deploy",
+    "cf:preview": "wrangler preview"
   },
   "dependencies": {
     "@focaldrop/shared": "workspace:*",

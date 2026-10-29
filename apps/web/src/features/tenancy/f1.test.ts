@@ -6,7 +6,7 @@ vi.mock('@/lib/api/session', () => ({ getApiAccessToken: mocks.token }));
 
 import { ApiError, errorResponse } from '@/lib/api/errors';
 import { proxyAdminRequest } from '@/lib/api/proxy';
-import { getApiUrl, getCacheRevalidationSecret } from '@/lib/api/server-env';
+import { getApiUrl } from '@/lib/api/server-env';
 
 import { normalizeTenantHost } from './host';
 
@@ -30,7 +30,6 @@ beforeEach(() => {
   fetchMock.mockResolvedValue(Response.json({ ok: true }));
   vi.stubGlobal('fetch', fetchMock);
   vi.stubEnv('API_URL', 'https://api.example.test');
-  vi.stubEnv('AGENCY_CACHE_REVALIDATION_SECRET', '');
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -81,16 +80,6 @@ describe('server configuration', () => {
     vi.stubEnv('API_URL', value);
     expect(getApiUrl).toThrow(ApiError);
   });
-  it('disables maintenance when no credential exists', () => {
-    expect(getCacheRevalidationSecret()).toBeUndefined();
-  });
-  it.each(['short', 'a'.repeat(257), `${'a'.repeat(32)}\n`])(
-    'rejects malformed maintenance configuration',
-    (value) => {
-      vi.stubEnv('AGENCY_CACHE_REVALIDATION_SECRET', value);
-      expect(getCacheRevalidationSecret).toThrow(ApiError);
-    },
-  );
   it('returns only an error code, not configuration or exception details', async () => {
     const response = errorResponse(new Error('private diagnostic'));
     expect(response.status).toBe(500);

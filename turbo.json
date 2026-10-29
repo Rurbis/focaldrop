@@ -16,7 +16,6 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["WEB_BUILD_ID", "API_URL"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "lint": {
@@ -44,9 +43,7 @@
         "DATABASE_URL",
         "DEFAULT_AGENCY_SLUG",
         "SENTRY_DSN",
-        "SENTRY_ENVIRONMENT",
-        "API_URL",
-        "AGENCY_CACHE_REVALIDATION_SECRET"
+        "SENTRY_ENVIRONMENT"
       ],
       "dependsOn": ["^build"],
       "cache": false,
