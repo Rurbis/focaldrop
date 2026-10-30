@@ -79,6 +79,7 @@ jobs:
           URL: ${{ steps.deploy.outputs.url }}
         run: |
           for path in / /admin/login /api/public/tenant; do
+            echo "Smoke test: $path"
             curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
           done
 
@@ -123,6 +124,7 @@ jobs:
           URL: ${{ steps.preview.outputs.url }}
         run: |
           for path in / /admin/login /api/public/tenant; do
+            echo "Smoke test: $path"
             curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 --output /dev/null "$URL$path"
           done
 
