@@ -1,6 +1,7 @@
 import { createDatabase } from './database.js';
 import { provisionAuthAdmin } from './provision-auth.js';
 import { provisionConfig } from './provision-config.js';
+import { safeErrorMessage } from './safe-error.js';
 import { provisionAgency } from './seed.js';
 
 // Staging and production only; the local demo is `pnpm db:seed`. Reads no .env
@@ -17,6 +18,10 @@ try {
     await client.end();
   }
 } catch (error) {
-  console.error(error instanceof Error ? error.message : 'Provisioning failed.');
+  // Never error.message or its cause: Drizzle errors carry the SQL and the
+  // agency data, and the Actions logs are public (#71).
+  console.error(
+    safeErrorMessage(error, 'Provisioning failed: unexpected database or network error.'),
+  );
   process.exitCode = 1;
 }

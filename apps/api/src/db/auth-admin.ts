@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { SafeError } from './safe-error.js';
+
 export const AuthUserSchema = z.object({
   id: z.uuid(),
   email: z.string().optional(),
@@ -24,7 +26,7 @@ export function authAdminRequest(authUrl: string, secretKey: string): AuthAdminR
       redirect: 'error',
       signal: AbortSignal.timeout(10_000),
     });
-    if (!response.ok) throw new Error(`Auth administration failed (HTTP ${response.status}).`);
+    if (!response.ok) throw new SafeError(`Auth administration failed (HTTP ${response.status}).`);
     return response.json();
   };
 }

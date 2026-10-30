@@ -4,6 +4,7 @@ import { eq, sql } from 'drizzle-orm';
 import type { createDatabase } from './database.js';
 import { LOCAL_DEMO } from './demo.js';
 import { agencies, agencyDomains, agencyMembers, profiles } from './schema/index.js';
+import { SafeError } from './safe-error.js';
 
 type Database = ReturnType<typeof createDatabase>['db'];
 type AuthAdmin = { ensureOwner(): Promise<{ id: string }> };
@@ -36,7 +37,7 @@ export async function provisionAgency(db: Database, auth: AuthAdmin, spec: Agenc
       .onConflictDoNothing({ target: agencies.slug });
     const [agency] = await tx.select().from(agencies).where(eq(agencies.slug, spec.slug));
     if (!agency || agency.notificationEmail !== spec.ownerEmail) {
-      throw new Error('The slug is already used by another agency; no data was overwritten.');
+      throw new SafeError('The slug is already used by another agency; no data was overwritten.');
     }
     await tx
       .insert(agencyDomains)
@@ -52,7 +53,7 @@ export async function provisionAgency(db: Database, auth: AuthAdmin, spec: Agenc
       .from(agencyDomains)
       .where(eq(agencyDomains.hostname, spec.hostname));
     if (domain?.agencyId !== agency.id) {
-      throw new Error(
+      throw new SafeError(
         'The hostname is already assigned to another agency; no data was overwritten.',
       );
     }

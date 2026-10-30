@@ -14,6 +14,8 @@ Issue: #71 · PR: #79 · Autor: Rubén
 
 - 2026-10-28: **#71 → PR: alta de la agencia de staging.** `provisionAgency()` sale del seed de la #15, y el cliente de Auth administrativo queda compartido (`auth-admin.ts`). Pruebas: guardas y validación (sin valores en los errores), alta del owner sin contraseña y reutilización de una cuenta existente, y en integración, una segunda agencia junto a la demo y el rechazo de un *slug* ajeno.
 
+- 2026-10-29: **Revisión de Fabian al PR #79:** el CLI imprimía `error.message`, y los errores de Drizzle traen el SQL con sus parámetros: nombre, *slug* y correo. Como el CLI los normaliza (recorta el nombre y pasa el correo a minúsculas), GitHub ya no los reconocía como secretos y quedaban visibles en los logs públicos. Ahora solo se imprimen los mensajes de `SafeError` (configuración inválida, colisiones y fallas de Auth con su código HTTP), y cualquier otro error sale con un texto fijo, sin parámetros, URLs ni `cause`. Una prueba de integración fuerza el rechazo del `INSERT` con un *trigger*, corre el CLI real y comprueba que la salida no tiene ningún valor, ni original ni normalizado.
+
 ## Tiempo
 
 - #71 Alta de la agencia en staging (R): estimado 3 h; real ≈ 1.5 h hasta el PR.

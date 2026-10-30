@@ -2,6 +2,7 @@ import { AgencySlugSchema } from '@focaldrop/shared';
 import { z } from 'zod';
 
 import type { AgencySpec } from './seed.js';
+import { SafeError } from './safe-error.js';
 
 const HostnameSchema = z
   .string()
@@ -42,11 +43,11 @@ export function provisionConfig(env: NodeJS.ProcessEnv, args: readonly string[])
   const result = ProvisionEnvSchema.safeParse(env);
   if (!result.success) {
     const names = [...new Set(result.error.issues.map((issue) => issue.path.join('.')))];
-    throw new Error(`Invalid provisioning configuration: ${names.join(', ')}.`);
+    throw new SafeError(`Invalid provisioning configuration: ${names.join(', ')}.`);
   }
   const value = result.data;
   if (value.PROVISION_TARGET === 'production' && !args.includes('--confirm-production')) {
-    throw new Error('Provisioning production requires --confirm-production.');
+    throw new SafeError('Provisioning production requires --confirm-production.');
   }
   return {
     target: value.PROVISION_TARGET,
