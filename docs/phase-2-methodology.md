@@ -170,7 +170,8 @@ Reglas: ningún secreto en el repo, en issues, en chats ni en capturas. `.env.ex
 |---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | web | Sí | Llave publicable (`sb_publishable_…`), que reemplaza a la *anon*. No abre nada: la Data API está apagada y RLS no tiene políticas para `anon` ni `authenticated` (D60, D121) |
 | `API_URL` | web | — | URL de Nest para el reenvío y las llamadas de servidor |
-| `DEFAULT_AGENCY_SLUG` | web, api | — | Solo fuera de producción (D7) |
+| `APP_ENV` | api | — | Entorno de despliegue: `development`, `test`, `staging` o `production`; por defecto `NODE_ENV`. Staging usa `NODE_ENV=production` con `APP_ENV=staging` (#13). |
+| `DEFAULT_AGENCY_SLUG` | web, api | — | Solo fuera de producción (D7); en la API lo determina `APP_ENV`. La API rechaza el arranque si producción trae un valor no vacío; staging lo recibe del secreto homónimo de su Environment. |
 | `SUPABASE_JWKS_URL`, `SUPABASE_JWT_AUDIENCE` | api | — | Validación del JWT (D57) |
 | `DATABASE_URL` | api | — | Pooler en modo transacción, puerto 6543 (D63), con el rol `app_api`; en staging, desde el secreto `api-database-url-staging` de Secret Manager; en local, Postgres de la CLI |
 | `MIGRATIONS_DATABASE_URL` | CI (migraciones) | — | *Session pooler*, puerto 5432: las migraciones necesitan una sesión completa, y la conexión directa es solo IPv6 en el plan Free (los runners de GitHub no tienen IPv6) (D121) |

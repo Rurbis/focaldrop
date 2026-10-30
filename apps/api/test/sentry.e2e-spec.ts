@@ -5,6 +5,7 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 
 import { AppModule } from '../src/app.module.js';
+import { DatabaseService } from '../src/db/database.module.js';
 import { SENTRY_DATA_COLLECTION } from '../src/constants/sentry.constants.js';
 
 @Controller('__test-errors')
@@ -43,7 +44,10 @@ describe('Sentry exception reporting (e2e)', () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
       controllers: [ErrorController],
-    }).compile();
+    })
+      .overrideProvider(DatabaseService)
+      .useValue({})
+      .compile();
 
     app = moduleFixture.createNestApplication({ logger: false });
     await app.init();

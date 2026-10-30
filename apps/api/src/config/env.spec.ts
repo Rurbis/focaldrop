@@ -9,6 +9,7 @@ describe('validateEnv', () => {
 
     expect(env).toEqual({
       NODE_ENV: 'development',
+      APP_ENV: 'development',
       PORT: 4000,
     });
   });
@@ -63,6 +64,46 @@ describe('validateEnv', () => {
 
     expect(env.SENTRY_DSN).toBe('https://public@example.invalid/1');
     expect(env.SENTRY_ENVIRONMENT).toBe('staging');
+  });
+
+  it.each(['test', 'production'])('defaults APP_ENV to NODE_ENV=%s', (NODE_ENV) => {
+    expect(validateEnv({ NODE_ENV }).APP_ENV).toBe(NODE_ENV);
+  });
+
+  it('allows a staging fallback with the production Node runtime', () => {
+    const env = validateEnv({
+      NODE_ENV: 'production',
+      APP_ENV: 'staging',
+      DEFAULT_AGENCY_SLUG: 'demo',
+    });
+
+    expect(env.APP_ENV).toBe('staging');
+    expect(env.DEFAULT_AGENCY_SLUG).toBe('demo');
+  });
+
+  it.each([
+    { NODE_ENV: 'production' },
+    { NODE_ENV: 'production', APP_ENV: 'production' },
+    { NODE_ENV: 'development', APP_ENV: 'production' },
+    { NODE_ENV: 'production', SENTRY_ENVIRONMENT: 'staging' },
+  ])('rejects a production default agency before startup (%j)', (input) => {
+    expect(() => validateEnv({ ...input, DEFAULT_AGENCY_SLUG: 'demo' })).toThrow(
+      /DEFAULT_AGENCY_SLUG: Must be unset when APP_ENV is production/,
+    );
+  });
+
+  it.each([undefined, ''])(
+    'allows production without a default agency (%s)',
+    (DEFAULT_AGENCY_SLUG) => {
+      expect(
+        validateEnv({ NODE_ENV: 'production', APP_ENV: 'production', DEFAULT_AGENCY_SLUG })
+          .DEFAULT_AGENCY_SLUG,
+      ).toBeUndefined();
+    },
+  );
+
+  it.each(['preview', 'stagin', '', 'Production'])('rejects invalid APP_ENV "%s"', (APP_ENV) => {
+    expect(() => validateEnv({ NODE_ENV: 'production', APP_ENV })).toThrow(/APP_ENV/);
   });
 
   it.each(['not-a-url', 'ftp://public@example.invalid/1', 'https://example.invalid/1'])(

@@ -1,4 +1,23 @@
-import { migrationsDatabaseUrl } from './config.js';
+import { migrationsDatabaseUrl, runtimeDatabaseUrl } from './config.js';
+
+describe('runtimeDatabaseUrl', () => {
+  it('uses only the runtime connection', () => {
+    const url = 'postgresql://app_api:synthetic@localhost:54322/postgres';
+    expect(runtimeDatabaseUrl({ DATABASE_URL: url })).toBe(url);
+  });
+
+  it.each([undefined, '', 'https://example.invalid', 'not-a-url'])(
+    'rejects an invalid runtime URL (%s) even with administrator credentials',
+    (DATABASE_URL) => {
+      expect(() =>
+        runtimeDatabaseUrl({
+          DATABASE_URL,
+          MIGRATIONS_DATABASE_URL: 'postgresql://postgres:synthetic@localhost:54322/postgres',
+        }),
+      ).toThrow('Set DATABASE_URL');
+    },
+  );
+});
 
 describe('migrationsDatabaseUrl', () => {
   const session = 'postgresql://postgres:local-only@127.0.0.1:54322/postgres';

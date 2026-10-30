@@ -1,3 +1,4 @@
+import { withSentryConfig } from '@sentry/nextjs/config';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
@@ -7,4 +8,15 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: 'focaldrop',
+  project: 'web',
+  // Source maps go to Sentry only when CI provides the organization token
+  // (#22); without it the build skips the upload. They are deleted from the
+  // build after uploading, so the browser never downloads them.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  telemetry: false,
+  // Tracing is off (D86), so route transitions need no hook.
+  suppressOnRouterTransitionStartWarning: true,
+});

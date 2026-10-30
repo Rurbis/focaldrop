@@ -4,9 +4,10 @@ import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { TenancyModule } from './tenancy/tenancy.module.js';
 
 @Module({
-  imports: [SentryModule.forRoot()],
+  imports: [SentryModule.forRoot(), TenancyModule],
   controllers: [AppController],
   providers: [{ provide: APP_FILTER, useClass: SentryGlobalFilter }, AppService],
 })
