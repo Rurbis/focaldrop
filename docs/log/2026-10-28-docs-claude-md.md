@@ -13,6 +13,8 @@ Issue: #26 · PR: #81 · Autor: Rubén
 
   Apunta a la bitácora y a `docs/adr/`. Sirve para cualquier agente de código; Turborepo no genera `AGENTS.md` (D115).
 
+- 2026-10-29: **Revisión de Fabian al PR #81:** `AGENTS.md` en la raíz, de una línea, que manda a leer `CLAUDE.md`. Así Codex encuentra la guía solo, sin duplicarla.
+
 ## Tiempo
 
 - #26 `CLAUDE.md` (R; antes de Fabian): estimado 1 h; real ≈ 0.4 h.
