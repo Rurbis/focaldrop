@@ -197,10 +197,10 @@ before guards/controllers. It resolves the agency, then opens an isolated
 context exists. Cached public objects are frozen so one request cannot mutate
 another request's agency.
 
-The host selects public context, not authorization. JWT authentication and
-membership/role checks remain in #12 and #14; callers must never treat a supplied
-tenant host as permission to access private data. These discovery queries are
-the exception to requiring an already-known `agency_id`.
+The host selects public context, not authorization. Permissions come from the
+session token and the membership (below, and #14); callers must never treat a
+supplied tenant host as permission to access private data. These discovery
+queries are the exception to requiring an already-known `agency_id`.
 
 `DatabaseModule` owns one runtime pool per process and closes it during Nest
 shutdown. `GET /health` does not resolve a tenant or query PostgreSQL. The API
@@ -212,6 +212,41 @@ and deterministically interleaved requests. PostgreSQL integrations exercise the
 real repository and HTTP endpoint with `SET LOCAL ROLE app_api`; temporary
 membership grants roll back with their transactions. Existing health/Sentry
 e2e tests replace the pool and need no running database.
+
+## Authentication (issue #12)
+
+`AuthGuard` verifies the Supabase access token sent as `Authorization: Bearer`,
+with Supabase's public keys and no shared secret. `GET /admin/me` uses it and
+returns the profile, the agency of the host and the role (`AdminMeSchema` in
+`@focaldrop/shared`), uncached.
+
+```powershell
+Invoke-RestMethod -Uri 'http://localhost:3001/admin/me' -Headers @{
+  'X-Tenant-Host' = 'localhost'
+  Authorization = "Bearer $token"
+}
+```
+
+A token is valid only with the ES256 algorithm, a signature from the published
+keys, an unexpired `exp`, the configured audience, the issuer derived from
+`SUPABASE_JWKS_URL` and a UUID as `sub`. The keys are cached for 10 minutes; a
+token naming an unknown key fetches them again at most every 30 seconds, so a
+rotation needs no restart and junk tokens cannot flood Supabase.
+
+| Status | Meaning                                                    | What the panel does               |
+| ------ | ---------------------------------------------------------- | --------------------------------- |
+| 401    | No token or an invalid one; the reason is never disclosed  | Back to the login                 |
+| 403    | Valid session, but no membership in the agency of the host | Shows that it has no access       |
+| 404    | Unknown host (`TenantMiddleware` runs first)               | Shows an error                    |
+| 500    | The keys could not be read; reported to Sentry             | Shows an error, keeps the session |
+
+An outage must not look like a bad token, or every signed-in user would be sent
+to the login. Staging and production refuse to start without
+`SUPABASE_JWKS_URL`; development and test default to the local Supabase CLI.
+
+The e2e tests sign tokens with a test key pair and serve the JWKS over local HTTP,
+so fetching, caching and rotation run as in staging. They need no database. The
+integration test reads real memberships with `SET LOCAL ROLE app_api`.
 
 ## Local demo (issue #15)
 
@@ -325,9 +360,11 @@ no compiler, tests or root tooling.
 Every push to `main` that touches the API or shared runs
 [`deploy-api.yml`](../../.github/workflows/deploy-api.yml): build, push to
 Artifact Registry, `pnpm db:migrate` against staging with
-`MIGRATIONS_DATABASE_URL`, `gcloud run deploy` and a `/health` smoke test. In
-Cloud Run staging, `NODE_ENV` is `production`, `APP_ENV` is `staging` and
-`DATABASE_URL` comes from Secret Manager. The optional fallback slug comes
+`MIGRATIONS_DATABASE_URL`, `gcloud run deploy` and a smoke test: `/health`, plus
+`/admin/me` with a fake token, which proves the API can read the JWKS. In Cloud
+Run staging, `NODE_ENV` is `production`, `APP_ENV` is `staging`, `DATABASE_URL`
+comes from Secret Manager and `SUPABASE_JWKS_URL` from the GitHub `staging`
+Environment variable of the same name. The optional fallback slug comes
 from the GitHub `staging` Environment secret after provisioning the agency
 in #71. The one-time setup is in
 [infra/gcp/README.md](../../infra/gcp/README.md#before-the-first-api-deploy-issue-16).
