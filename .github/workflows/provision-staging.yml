@@ -1,0 +1,39 @@
+# Creates or reuses the staging agency, its domain and its owner (#71), so F3
+# and the demo (#27) have data in staging. Safe to run again: it changes
+# nothing that already exists. The owner gets no password and sets one with
+# "forgot password" on /admin/login.
+# This repo and its Actions logs are public: every value that identifies the
+# agency comes from secrets of the staging Environment, which GitHub masks in
+# the logs. Nothing goes in workflow inputs.
+name: Provision staging agency
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Uses the staging secrets without recording a deployment.
+    environment:
+      name: staging
+      deployment: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+
+      - name: Provision the agency and its owner
+        env:
+          PROVISION_TARGET: staging
+          MIGRATIONS_DATABASE_URL: ${{ secrets.MIGRATIONS_DATABASE_URL }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          # The API falls back to this slug for preview hosts (D7, #61).
+          AGENCY_SLUG: ${{ secrets.DEFAULT_AGENCY_SLUG }}
+          AGENCY_NAME: ${{ secrets.STAGING_AGENCY_NAME }}
+          AGENCY_HOSTNAME: focaldrop-web-staging.focaldrop.workers.dev
+          OWNER_EMAIL: ${{ secrets.STAGING_OWNER_EMAIL }}
+        run: pnpm db:provision

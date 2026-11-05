@@ -272,6 +272,16 @@ Postgres integration tests cover idempotence, concurrent runs and collisions.
 The Supabase job runs only when API, shared, Supabase or relevant root/build/CI
 files change, so unrelated web or documentation PRs skip it.
 
+## Staging agency (issue #71)
+
+`pnpm db:provision` creates or reuses one agency, its primary domain, its owner's Auth account, profile and `owner` membership in **staging or production**; the local demo stays `pnpm db:seed`. It shares `provisionAgency()` with the seed (`src/db/seed.ts`): running it again changes nothing, and it never takes a slug or hostname from another agency.
+
+- **No passwords.** A new owner account is created confirmed and without a password; the owner sets one with "forgot password" on `/admin/login`. An existing account with that email is reused as it is. Supabase only lets you edit the recovery email with custom SMTP, and its default email does not work with `/admin/auth/confirm` (D133). So until staging has SMTP, create the owner first in the Supabase dashboard (Authentication, Users, Add user, with _Auto Confirm User_), with a password from Bitwarden; the workflow then reuses that account.
+- **Guards.** `PROVISION_TARGET` must be `staging` or `production`, and production also needs `--confirm-production`. It reads no `.env` file, so local settings never reach a remote database. Errors name the invalid variables, never their values.
+- **Variables:** `PROVISION_TARGET`, `MIGRATIONS_DATABASE_URL` (session pooler, administrator), `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `AGENCY_SLUG`, `AGENCY_NAME`, `AGENCY_HOSTNAME`, `OWNER_EMAIL` and, optionally, `OWNER_NAME` (defaults to the agency name).
+
+In staging it runs from the manual workflow [`provision-staging.yml`](../../.github/workflows/provision-staging.yml) (Actions, _Provision staging agency_, _Run workflow_). The repo and its Actions logs are public, so the agency's slug, name and owner email come from secrets of the `staging` Environment (`DEFAULT_AGENCY_SLUG`, `STAGING_AGENCY_NAME`, `STAGING_OWNER_EMAIL`), next to `SUPABASE_SECRET_KEY` and `MIGRATIONS_DATABASE_URL`. The slug is the same one the API uses as its staging fallback (D7). The domain is `focaldrop-web-staging.focaldrop.workers.dev`.
+
 ## Checks and production build
 
 ```sh
