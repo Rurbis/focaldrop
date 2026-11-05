@@ -1,6 +1,6 @@
 # feat(api): verify supabase sessions and serve the signed-in member
 
-Issue: #12 · PR: — · Autor: Rubén
+Issue: #12 · PR: #84 · Autor: Rubén
 
 ## Decisiones
 
@@ -14,7 +14,7 @@ Issue: #12 · PR: — · Autor: Rubén
 
 ## Historial
 
-- 2026-11-04: **F3, parte API → PR: `AuthGuard` y `GET /admin/me` (#12).** Devuelve perfil, agencia del host y rol, sin caché y con el contrato `AdminMeSchema` en `shared`; `isPlatformAdmin` y el correo de la agencia no salen de la API. Pruebas: 24 e2e con llaves de prueba y un JWKS servido por HTTP local (firma falsa, otro algoritmo, HMAC con la llave pública, sin firma, sin `exp`, rotación, caché y JWKS caído), y una de integración con `app_api`. Se comprobó que quitar cada regla de seguridad rompe una prueba. Con un token real de Supabase Auth local (ES256, y emisor y audiencia coinciden): 200, firma alterada 401, sin membresía 403. El JWKS de staging publica ES256. El smoke del deploy manda un token falso con un `kid` desconocido para comprobar que la API puede leer el JWKS.
+- 2026-11-04: **F3, parte API → PR #84: `AuthGuard` y `GET /admin/me` (#12).** Devuelve perfil, agencia del host y rol, sin caché y con el contrato `AdminMeSchema` en `shared`; `isPlatformAdmin` y el correo de la agencia no salen de la API. Pruebas: 24 e2e con llaves de prueba y un JWKS servido por HTTP local (firma falsa, otro algoritmo, HMAC con la llave pública, sin firma, sin `exp`, rotación, caché y JWKS caído), y una de integración con `app_api`. Se comprobó que quitar cada regla de seguridad rompe una prueba. Con un token real de Supabase Auth local (ES256, y emisor y audiencia coinciden): 200, firma alterada 401, sin membresía 403. El JWKS de staging publica ES256. El smoke del deploy manda un token falso con un `kid` desconocido para comprobar que la API puede leer el JWKS.
 
 ## Tiempo
 
