@@ -361,6 +361,13 @@ Revisión integral de las Partes A y B con la pregunta "¿esto lo pueden constru
   - Pantallas del panel con la marca (#53) y capturas en CI (#52), las dos *Should*.
   - Cierre del hito: demo, retro y tag `v0.0.1` (#27).
   - Ya cerradas desde la integración anterior: F2 (#16, D140), F4 (#22, D145) y los ADRs de la #24.
+- **Pendientes que venían en las notas de esta integración** (revisión de Fabian en el #83; comprobados el 2026-11-05):
+  - **`API_SENTRY_DSN` en el Environment `staging`:** no existe, y en el último deploy `SENTRY_DSN` quedó vacío, así que los errores de la API de staging no llegan a Sentry. La crea Rubén con el DSN de Bitwarden; se aplica en el siguiente deploy de la API.
+  - **UptimeRobot:** monitores para el front y la API de staging (D123 los dejaba para cuando existiera staging). Falta confirmar en su panel si ya existen; desde el repo no se puede comprobar.
+  - **Caché de agencias:** al implementar los cambios de dominio o la suspensión, decidir si las cachés por instancia se invalidan de inmediato o si se acepta su retraso de hasta cinco minutos (#61).
+  - **Dependencias:** quitar los `overrides` de `multer` y `undici` cuando Nest y wrangler fijen las versiones parchadas, y correr `bootstrap.sh` en la próxima ocasión para que el *billing guard* reciba los parches del #72.
+  - **Peso del Worker:** ya usa el 71 % del límite de Workers Free (2,186 de 3,072 KiB, y 2,326 KiB con el #78), y el hito 1 le agrega la galería. Workers Paid (US$5 al mes) puede hacer falta antes del lanzamiento.
+  - **Muestras de la agencia:** S-1 y S-5 (hito 1) las usan, y nunca van al repo.
 - **Fase 3 · Hito 0 (en curso):** issues #1–#27 de la Fase 2 §9, en orden, creadas en GitHub con la misma numeración. ✅ #1–#10, #17 y #30. **#7 cerrada (2026-10-15):** PR #33 mezclado en `8318edb` (D124, D125). Configurado y **probado el 2026-10-14**:
   - cuenta de pago activa y proyecto `focaldrop`;
   - script corrido en Cloud Shell y presupuesto de MX$100 conectado a `billing-alerts`;
