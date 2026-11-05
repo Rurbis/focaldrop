@@ -14,6 +14,8 @@ Issue: #13 · PR: #78 · Autor: Fabian
 - 2026-10-28: parte web de F1 sobre el PR #61: resolución y validación pública de agencia y reenvío con sesión verificada, con pruebas de fronteras HTTP.
 - 2026-10-29: revisión del #78: la caché persistente se separa de F1. El verificador usa Next compilado y una API sintética para comprobar lecturas nuevas por petición, separación de hosts, exclusión de campos privados y recuperación tras errores. El smoke de staging exige una agencia real aprovisionada por #79; no acepta un 404 como éxito.
 - El #61 quedó integrado en `main` y sus despliegues de API y web terminaron correctamente. La propuesta separada de caché está en el borrador #82, asociado a F6/S-4.
+- 2026-11-04: sincronización del #78 con `main` después de integrar #76, #77 y #80. Los conflictos de dependencias, configuración de ejemplo y README se resuelven conservando F1 y Sentry del navegador. El workflow mantiene las variables de Sentry y el smoke obligatorio del tenant; la caché sigue en F6. El #79 ya tiene aprobación, pero su integración y el aprovisionamiento de staging siguen pendientes.
+- Validación de la sincronización: Node 24.22.1 / pnpm 10.34.6, instalación con lockfile congelado, lint, tipos, formato, build estándar de Next y 167 pruebas (116 web y 51 shared) correctos. El verificador con Next compilado y API sintética pasa. En Windows fue necesario conservar aparte la salida anterior de `.next` y compilar en limpio después de incorporar Sentry; no se cambia el compilador ni se desactiva Sentry. El Worker y su smoke se comprueban en CI Linux.
 
 ## Tiempo
 

@@ -94,3 +94,11 @@ pnpm --filter @focaldrop/web test:integration:f1
 The integration verifier starts a disposable HTTP API and the compiled Next server with synthetic data. It checks fresh lookups, host separation, ignored spoofed headers, recovery after lookup failures, public field filtering and HTTP boundaries. It never uses staging, the developer's database or a real Supabase session. Unit tests cover verified-token forwarding, body limits, redirects, CSRF and configuration validation.
 
 Before a successful remote smoke test, deploy #61 and provision the staging agency/domain from #79 (#71). The smoke test requires `/api/public/tenant` to return 200; it does not hide an unprovisioned agency behind a successful result.
+
+## Error reporting (issue #22)
+
+`@sentry/nextjs` reports **browser** errors to the Sentry project `web` ([`src/instrumentation-client.ts`](src/instrumentation-client.ts)), with no tracing, Session Replay or logs, and the same data collection policy as the API: no user info, cookies, headers, bodies or query strings ([`src/lib/sentry/options.ts`](src/lib/sentry/options.ts)). The DSN comes from `NEXT_PUBLIC_SENTRY_DSN`, inlined at build time; without it Sentry stays off, so local development and pull requests from forks send nothing.
+
+**Server errors are not sent to Sentry.** Its server SDK, even through the official Cloudflare wrapper, added about 1.5 MiB to the Worker: 3.6 MiB compressed, over the 3 MiB limit of Workers Free. They stay in Workers Logs (Cloudflare dashboard: Workers & Pages, `focaldrop-web-staging`, Logs), already enabled in `wrangler.jsonc`. Revisit with Workers Paid (10 MiB) at launch, or if Sentry ships a lighter server SDK.
+
+When CI has `SENTRY_AUTH_TOKEN`, an organization token stored in the `staging` and `preview` Environments, the build uploads the browser source maps to Sentry and deletes them from the output, so the browser never downloads them. Without the token it skips the upload.

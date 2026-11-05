@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@focaldrop/shared": "workspace:*",
+    "@sentry/nextjs": "11.7.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.2",
     "next": "16.4.2",
