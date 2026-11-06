@@ -26,6 +26,20 @@ const EnvSchema = z
       (value) => (value === '' ? undefined : value),
       z.string().trim().min(1).optional(),
     ),
+    SUPABASE_JWKS_URL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .url({ protocol: /^https?$/ })
+        .refine(
+          (value) => value.endsWith('/auth/v1/.well-known/jwks.json'),
+          'Expected the Auth JWKS URL of a Supabase project',
+        )
+        .optional(),
+    ),
+    SUPABASE_JWT_AUDIENCE: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().trim().min(1).optional(),
+    ),
   })
   .transform((env) => ({ ...env, APP_ENV: env.APP_ENV ?? env.NODE_ENV }))
   .superRefine((env, context) => {
@@ -52,4 +66,17 @@ export function validateEnv(input: Record<string, unknown>): Env {
   }
 
   return result.data;
+}
+
+/** What a running server also needs; outside deployments it has local defaults. */
+export function validateServerEnv(input: Record<string, unknown>): Env {
+  const env = validateEnv(input);
+
+  if ((env.APP_ENV === 'staging' || env.APP_ENV === 'production') && !env.SUPABASE_JWKS_URL) {
+    throw new Error(
+      'Invalid environment configuration: SUPABASE_JWKS_URL: Required when APP_ENV is staging or production.',
+    );
+  }
+
+  return env;
 }
