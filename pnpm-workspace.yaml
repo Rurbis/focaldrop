@@ -23,9 +23,13 @@ overrides:
   # librsvg has GHSA-wq5f-xc86-pv6w. It only runs on developer machines, never
   # in the Worker. Remove once wrangler ships 0.35.5 or newer.
   'miniflare>sharp': 0.35.5
-  # OpenNext's minifier pins glob 10.3, whose CLI has GHSA-5j98-mcp5-4vw2.
-  # OpenNext only uses the library, but 10.5.0 is a compatible minor.
-  '@node-minify/core>glob': 10.5.0
+  # glob has GHSA-3g3m-2fjr-6pw4 and minimatch GHSA-g3hv-75wg-m249, and only
+  # their new majors have the fix. OpenNext, ESLint, the Nest CLI and Sentry's
+  # bundler plugins still ask for the old ones. All of them are build tools:
+  # their patterns come from this repo and none passes an AbortSignal. Remove
+  # each once those packages accept glob 14.0.2 and minimatch 11.0.1 or newer.
+  'glob@>=9.0.0 <14.0.2': 14.0.3
+  'minimatch@>=7.0.0 <11.0.1': 11.0.4
   # drizzle-kit 0.31 still declares @esbuild-kit (abandoned, merged into tsx),
   # which pins esbuild 0.18 with the dev-server advisory GHSA-67mh-4wv8-2f99
   # (Dependabot #18). drizzle-kit never loads it, so it gets the esbuild that
