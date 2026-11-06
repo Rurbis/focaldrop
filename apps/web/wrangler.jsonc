@@ -19,6 +19,10 @@
       "service": "focaldrop-web-staging",
     },
   ],
+  // Server-only upstream; Supabase uses its separate NEXT_PUBLIC_* variables.
+  "vars": {
+    "API_URL": "https://focaldrop-api-staging-664538226545.us-east4.run.app",
+  },
   // Workers Logs: errors and the CPU time of every request (S-4 measures it).
   "observability": {
     "enabled": true,
@@ -27,6 +31,11 @@
   // settings above into them except service bindings: from a Preview, a
   // service binding would reach the staging Worker, not the Preview itself.
   // OpenNext only needs WORKER_SELF_REFERENCE for cache revalidation, which
-  // arrives with #19 and #20.
-  "previews": {},
+  // arrives with F6 (#21). Previews must never revalidate staging.
+  "previews": {
+    "vars": {
+      "API_URL": "https://focaldrop-api-staging-664538226545.us-east4.run.app",
+    },
+    "services": [],
+  },
 }
