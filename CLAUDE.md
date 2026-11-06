@@ -61,11 +61,13 @@ Requisitos: Node **24.22.1** (`.nvmrc`; `pnpm install` rechaza versiones anterio
 | `pnpm db:generate`                              | Genera la migración a partir del esquema de Drizzle                             |
 | `pnpm db:migrate` · `pnpm db:seed`              | Aplica migraciones y crea la agencia de demo local                              |
 | `pnpm db:reset`                                 | Borra Supabase local, migra y siembra de nuevo                                  |
+| `pnpm db:provision`                             | Alta de una agencia en staging o producción; no es el seed local (ver abajo)    |
 | `pnpm --filter @focaldrop/api test:integration` | Pruebas con Postgres real; necesitan `TEST_DATABASE_URL` (en CI siempre corren) |
 
 - La CI requerida es `quality` (formato, lint, tipos) y `test` (pruebas y build); antes de abrir un PR, corre lo mismo en local.
 - **El Worker del front solo se compila en Linux** (D129): los scripts `cf:*` de la web corren en CI, no en Windows.
 - Los deploys a staging son automáticos al mezclar en `main` (`deploy-web.yml`, `deploy-api.yml`).
+- El alta de agencias en staging corre desde el workflow manual `provision-staging.yml`, con los datos en secretos del Environment. El detalle está en el [README de la API](apps/api/README.md#staging-agency-issue-71).
 - En Windows, los comandos de `gh` con texto en español o JSON van en scripts de Node: PowerShell 5.1 altera comillas y acentos (D112).
 
 ## Pruebas obligatorias al tocar su área
