@@ -21,8 +21,8 @@ export async function fetchFromApi(url: URL, options: RequestInit = {}): Promise
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof Error && error.name === 'TimeoutError') {
-      throw new ApiError(504, 'API_TIMEOUT');
+      throw new ApiError(504, 'API_TIMEOUT', { cause: error });
     }
-    throw new ApiError(502, 'API_UNAVAILABLE');
+    throw new ApiError(502, 'API_UNAVAILABLE', { cause: error });
   }
 }

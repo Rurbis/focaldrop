@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({ token: vi.fn<() => Promise<string>>() }));
 vi.mock('server-only', () => ({}));
 vi.mock('@/lib/api/session', () => ({ getApiAccessToken: mocks.token }));
 
+import { GET } from '@/app/api/[...path]/route';
 import { ApiError, errorResponse } from '@/lib/api/errors';
 import { proxyAdminRequest } from '@/lib/api/proxy';
 import { getApiUrl } from '@/lib/api/server-env';
@@ -11,6 +12,7 @@ import { getApiUrl } from '@/lib/api/server-env';
 import { normalizeTenantHost } from './host';
 
 const fetchMock = vi.fn<typeof fetch>();
+const log = vi.fn();
 
 function request(method = 'GET', extra: RequestInit = {}): Request {
   const headers = new Headers(extra.headers);
@@ -30,8 +32,11 @@ beforeEach(() => {
   fetchMock.mockResolvedValue(Response.json({ ok: true }));
   vi.stubGlobal('fetch', fetchMock);
   vi.stubEnv('API_URL', 'https://api.example.test');
+  log.mockReset();
+  vi.spyOn(console, 'error').mockImplementation(log);
 });
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
@@ -243,6 +248,56 @@ describe('admin forwarding', () => {
       status: 502,
       code: 'API_UNAVAILABLE',
     });
+  });
+  it.each([
+    [
+      new TypeError('https://private.example.test/?token=private-token'),
+      502,
+      'API_UNAVAILABLE',
+      'TypeError',
+    ],
+    [
+      new DOMException('private timeout diagnostic', 'TimeoutError'),
+      504,
+      'API_TIMEOUT',
+      'TimeoutError',
+    ],
+  ])(
+    'reports a mapped transport failure once at the HTTP boundary',
+    async (failure, status, code, type) => {
+      fetchMock.mockRejectedValueOnce(failure);
+      const response = await GET(request(), { params: Promise.resolve({ path: ['admin', 'me'] }) });
+      expect(response.status).toBe(status);
+      expect(await response.json()).toEqual({ error: code });
+      expect(log.mock.calls).toEqual([['[api-bridge]', { status, code, type }]]);
+    },
+  );
+  it('records a forwarded API 5xx without its body or headers', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        { error: 'private-upstream-diagnostic' },
+        { status: 503, headers: { 'Retry-After': '10', 'Set-Cookie': 'private=value' } },
+      ),
+    );
+    const response = await GET(request(), { params: Promise.resolve({ path: ['admin', 'me'] }) });
+    expect(response.status).toBe(503);
+    expect(response.headers.get('Retry-After')).toBe('10');
+    expect(response.headers.has('Set-Cookie')).toBe(false);
+    expect(log.mock.calls).toEqual([
+      ['[api-bridge]', { status: 503, code: 'API_SERVER_ERROR', type: 'ApiError' }],
+    ]);
+  });
+  it('keeps a temporary Auth outage as 503 and forwards again after recovery', async () => {
+    mocks.token.mockRejectedValueOnce(new ApiError(503, 'AUTH_UNAVAILABLE'));
+    let response = await GET(request(), { params: Promise.resolve({ path: ['admin', 'me'] }) });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: 'AUTH_UNAVAILABLE' });
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    expect(response.headers.has('Location')).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+    response = await GET(request(), { params: Promise.resolve({ path: ['admin', 'me'] }) });
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
   it('maps an upstream timeout to 504', async () => {
     fetchMock.mockRejectedValue(new DOMException('timeout', 'TimeoutError'));

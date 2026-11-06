@@ -2,7 +2,7 @@ import 'server-only';
 
 import { normalizeTenantHost } from '@/features/tenancy/host';
 
-import { ApiError, privateResponseHeaders } from './errors';
+import { ApiError, privateResponseHeaders, reportApiError } from './errors';
 import { fetchFromApi } from './fetch';
 import { getApiUrl } from './server-env';
 import { getApiAccessToken } from './session';
@@ -111,5 +111,7 @@ export async function proxyAdminRequest(
   if (contentType) responseHeaders.set('Content-Type', contentType);
   const retryAfter = upstream.headers.get('retry-after');
   if (retryAfter) responseHeaders.set('Retry-After', retryAfter);
+  // Forwarded 5xx responses do not pass through errorResponse().
+  if (upstream.status >= 500) reportApiError(new ApiError(upstream.status, 'API_SERVER_ERROR'));
   return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
 }

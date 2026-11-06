@@ -80,6 +80,8 @@ Next replaces `Authorization` and `X-Tenant-Host`; it never forwards browser coo
 
 `getSession()` only obtains the candidate token; `getClaims(token)` verifies it before forwarding. Nest remains responsible for JWT verification and agency membership/role authorization (F3/F5). The bridge does not grant membership or add business operations.
 
+Missing or invalid sessions return 401 `AUTHENTICATION_REQUIRED`. A retryable Supabase Auth failure during session refresh or token verification returns 503 `AUTH_UNAVAILABLE`, so the panel can show a temporary error without redirecting a valid session to login. Unexpected failures remain server errors.
+
 Public agency results are validated on every request with `cache: 'no-store'`. Only public fields of active agencies are returned. HTTP responses, including errors, use `Cache-Control: private, no-store`; authenticated responses never enter a data cache. Nest retains its existing five-minute in-memory cache; tenant discovery never authorizes a user.
 
 Persistent Next caching and the `agency-domains` tag move to F6 (#21), alongside the Cloudflare hosting decision (ADR-0010). This PR needs no R2 bucket, D1 database or maintenance credential. The invalidation endpoint will be designed when a domain mutation exists.
@@ -100,5 +102,7 @@ Before a successful remote smoke test, deploy #61 and provision the staging agen
 `@sentry/nextjs` reports **browser** errors to the Sentry project `web` ([`src/instrumentation-client.ts`](src/instrumentation-client.ts)), with no tracing, Session Replay or logs, and the same data collection policy as the API: no user info, cookies, headers, bodies or query strings ([`src/lib/sentry/options.ts`](src/lib/sentry/options.ts)). The DSN comes from `NEXT_PUBLIC_SENTRY_DSN`, inlined at build time; without it Sentry stays off, so local development and pull requests from forks send nothing.
 
 **Server errors are not sent to Sentry.** Its server SDK, even through the official Cloudflare wrapper, added about 1.5 MiB to the Worker: 3.6 MiB compressed, over the 3 MiB limit of Workers Free. They stay in Workers Logs (Cloudflare dashboard: Workers & Pages, `focaldrop-web-staging`, Logs), already enabled in `wrangler.jsonc`. Revisit with Workers Paid (10 MiB) at launch, or if Sentry ships a lighter server SDK.
+
+The API bridge records its 5xx failures and forwarded API 5xx responses with `[api-bridge]`, the HTTP status, a controlled error code and an allowlisted error type. It never logs exception messages, stacks, URLs, headers, cookies, tokens or bodies; expected 4xx responses are not logged. Transport failures retain only their safe error type in the diagnostic.
 
 When CI has `SENTRY_AUTH_TOKEN`, an organization token stored in the `staging` and `preview` Environments, the build uploads the browser source maps to Sentry and deletes them from the output, so the browser never downloads them. Without the token it skips the upload.
