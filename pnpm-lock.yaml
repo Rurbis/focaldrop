@@ -136,6 +136,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@focaldrop/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@sentry/nextjs':
         specifier: 11.7.0
         version: 11.7.0(@babel/core@7.29.7)(next@16.4.2(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(wrangler@4.148.0(@types/node@24.19.0))
@@ -160,6 +163,9 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
+      server-only:
+        specifier: 0.0.1
+        version: 0.0.1
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -4315,6 +4321,9 @@ packages:
   serve-static@2.2.1:
     resolution: {integrity: sha512-xRXBn0pPqQTVQiC8wyQrKs2MOlX24zQ0POGaj0kultvoOCstBQM5yvOhAVSUwOMjQtTvsPWoNCHfPGwaaQJhTw==}
     engines: {node: '>= 18'}
+
+  server-only@0.0.1:
+    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
 
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
@@ -8897,6 +8906,8 @@ snapshots:
       send: 1.2.1
     transitivePeerDependencies:
       - supports-color
+
+  server-only@0.0.1: {}
 
   setprototypeof@1.2.0: {}
 
