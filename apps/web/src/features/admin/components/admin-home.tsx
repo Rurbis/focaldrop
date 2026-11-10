@@ -2,6 +2,7 @@ import { Message } from '@/components/ui/message';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { t } from '@/i18n/es-MX';
 
+import { firstName } from '../first-name';
 import type { AdminHome } from '../me';
 import { RetryButton } from './retry-button';
 
@@ -56,7 +57,7 @@ export function AdminHomeView({ home }: { home: ShownHome }) {
         id="home-title"
         className="text-page font-semibold tracking-tight break-words text-balance text-ink"
       >
-        {t.admin.home.greeting} {profile.fullName}
+        {t.admin.home.greeting} {firstName(profile.fullName)}
       </h1>
       <dl className="mt-5 flex flex-wrap gap-x-14 gap-y-4">
         <div className="min-w-0">

@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/admin/logi
   return (
     <>
       <h1 className="text-page font-semibold tracking-tight text-balance">{t.auth.login.title}</h1>
-      <p className="mt-1.5 mb-7 text-body text-ink-muted">
+      <p className="mt-1.5 mb-7 text-body break-words text-ink-muted">
         <Suspense fallback={t.auth.login.intro}>
           <AgencyIntro />
         </Suspense>

@@ -19,6 +19,12 @@ export function LightTableShell({
 }: Readonly<{ agency: ReactNode; children: ReactNode }>) {
   return (
     <div className="flex min-h-dvh flex-col bg-room">
+      <a
+        href="#panel-main"
+        className="sr-only rounded-ui bg-surface px-4 py-2 text-ui font-semibold text-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-10"
+      >
+        {t.admin.skipToContent}
+      </a>
       <header className="flex h-16 shrink-0 items-center gap-4 pr-2 pl-4 sm:h-[4.25rem] sm:gap-12 sm:pr-8 sm:pl-10">
         <Link href="/admin" aria-label={t.admin.logoHome} className="rounded-sm">
           <LogoSymbol className="h-7.5 w-auto sm:hidden" />
@@ -34,7 +40,11 @@ export function LightTableShell({
           </form>
         </div>
       </header>
-      <main className="light-table mx-2.5 flex-1 rounded-t-ui px-5 pt-8 pb-12 sm:mx-auto sm:w-full sm:max-w-[62.5rem] sm:px-18 sm:pt-13">
+      <main
+        id="panel-main"
+        tabIndex={-1}
+        className="light-table mx-2.5 flex-1 rounded-t-ui px-5 pt-8 pb-12 sm:mx-auto sm:w-full sm:max-w-[62.5rem] sm:px-18 sm:pt-13"
+      >
         {children}
       </main>
     </div>

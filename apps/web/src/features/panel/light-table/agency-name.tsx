@@ -13,7 +13,10 @@ export async function AgencyName() {
   const home = await getAdminHome((await headers()).get('host'));
   if (home.status !== 'ready') return null;
   return (
-    <span className="max-w-[12rem] truncate text-ui text-ink-muted sm:max-w-[20rem]">
+    <span
+      title={home.me.agency.name}
+      className="max-w-[12rem] truncate text-ui text-ink-muted sm:max-w-[20rem]"
+    >
       {home.me.agency.name}
     </span>
   );

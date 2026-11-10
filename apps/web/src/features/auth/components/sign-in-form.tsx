@@ -27,6 +27,7 @@ export function SignInForm({ notice }: { notice: 'linkInvalid' | 'sessionEnded' 
         name="email"
         type="email"
         autoComplete="email"
+        spellCheck={false}
         isRequired
         validationBehavior="aria"
         defaultValue={state.status === 'error' ? state.email : undefined}

@@ -47,6 +47,7 @@ export const t = {
       retrying: 'Reintentando…',
     },
     logoHome: 'Focal Drop, ir al inicio',
+    skipToContent: 'Saltar al contenido',
     signOut: 'Salir',
   },
   auth: {
