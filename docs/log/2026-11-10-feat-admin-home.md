@@ -23,7 +23,6 @@ Issue: #12 · PR: #89 · Autor: Rubén
 
 ## Pendientes
 
-- **Rubén aprueba la pantalla en la preview**, entrando con el owner de staging.
-- **El nombre del rol** ("Titular" y "Equipo") es una propuesta; se confirma con Rubén y Fabian.
+- **Rubén aprobó la pantalla como funcional el 2026-11-10**, en la preview, incluidos los nombres de rol "Titular" y "Equipo". El diseño final llega con la A3 (#53). Falta la opinión de Fabian sobre esos nombres.
 - **Las pantallas con la marca** (A3, #53) cambian el encabezado y la navegación; esta página ya usa los componentes y tokens de A2.
 - **La primera visita tras un rato sin uso** puede tardar o dar un error temporal mientras Cloud Run despierta. Falta medirlo.
