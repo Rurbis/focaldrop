@@ -73,14 +73,14 @@ export function AdminHomeView({ home }: { home: ShownHome }) {
       <h2 className="mt-11 text-title font-semibold tracking-tight text-ink">
         {t.admin.home.next.title}
       </h2>
-      <ol className="mt-1.5 max-w-[48rem]">
+      <ol className="mt-1.5">
         <li className="flex items-start gap-3.5 py-3.5">
           <span className="grid size-7 shrink-0 place-items-center rounded-full bg-success-soft text-success">
             <CheckIcon />
           </span>
           <div className="min-w-0">
             <p className="text-body font-semibold text-ink">{t.admin.home.next.ready}</p>
-            <p className="text-body break-words text-ink-muted">
+            <p className="max-w-[36rem] text-body break-words text-ink-muted">
               {t.admin.home.next.readyAs[role](agency.name)}
             </p>
           </div>
@@ -91,7 +91,7 @@ export function AdminHomeView({ home }: { home: ShownHome }) {
           </span>
           <div className="min-w-0 flex-[1_1_calc(100%-2.75rem)] sm:flex-1">
             <p className="text-body font-semibold text-ink">{t.admin.home.next.soon}</p>
-            <p className="text-body text-ink-muted">{t.admin.home.next.soonBody}</p>
+            <p className="max-w-[36rem] text-body text-ink-muted">{t.admin.home.next.soonBody}</p>
           </div>
           <span className="ml-[2.625rem] sm:ml-0">
             <StatusBadge tone="muted">{t.admin.home.next.soonBadge}</StatusBadge>

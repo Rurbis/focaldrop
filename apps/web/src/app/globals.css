@@ -105,6 +105,22 @@
     @apply bg-paper text-ink font-sans antialiased;
   }
 
+  /* Browser surfaces in the palette too: selection, caret and the overscroll
+     ground behind the room of Mesa de luz. */
+  ::selection {
+    background-color: var(--fd-accent-soft);
+    color: var(--fd-ink);
+  }
+
+  input,
+  textarea {
+    caret-color: var(--fd-accent);
+  }
+
+  body:has(.bg-room) {
+    background-color: var(--fd-room);
+  }
+
   :focus-visible {
     outline: 3px solid var(--fd-accent);
     outline-offset: 2px;

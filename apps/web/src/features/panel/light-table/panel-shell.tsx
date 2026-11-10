@@ -31,7 +31,9 @@ export function LightTableShell({
           <Logo className="hidden h-6.5 w-auto sm:block" />
         </Link>
         <PanelNav />
-        <div className="ml-auto flex min-w-0 items-center gap-1.5">
+        {/* Phone: the agency follows the symbol, as the bar's title. Wider:
+            it sits muted beside «Salir», after the sections. */}
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5 sm:ml-auto sm:flex-none">
           {agency}
           <form action={signOut}>
             <Button type="submit" variant="quiet" size="sm">

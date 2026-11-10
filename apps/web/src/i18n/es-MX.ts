@@ -41,7 +41,7 @@ export const t = {
       loading: 'Cargando tu inicio…',
       // No invitations in the MVP (P-C2): the owner is the only member.
       noAccess:
-        'Tu cuenta no tiene acceso al panel de esta agencia. Revisa que entraste con el correo correcto. Para usar otra cuenta, usa «Salir».',
+        'Tu cuenta no tiene acceso al panel de esta agencia. Revisa que hayas entrado con el correo correcto, o usa «Salir» para entrar con otra cuenta.',
       unavailable: 'No pudimos cargar tu inicio. Intenta de nuevo en unos segundos.',
       retry: 'Reintentar',
       retrying: 'Reintentando…',

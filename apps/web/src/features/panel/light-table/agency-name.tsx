@@ -15,7 +15,7 @@ export async function AgencyName() {
   return (
     <span
       title={home.me.agency.name}
-      className="max-w-[12rem] truncate text-ui text-ink-muted sm:max-w-[20rem]"
+      className="min-w-0 flex-1 truncate text-ui font-semibold text-ink sm:max-w-[20rem] sm:flex-none sm:font-normal sm:text-ink-muted"
     >
       {home.me.agency.name}
     </span>
