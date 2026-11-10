@@ -46,7 +46,7 @@ Issue: #53 · PR: #91 · Autor: Rubén
 
 ## Pendientes
 
-- **Aprobación:** Rubén la aprueba en la preview, en la computadora y en el celular; Fabian revisa el código.
+- **Aprobación:** Rubén la aprobó en la preview el 2026-11-10; falta la revisión de código de Fabian.
 - **Hito 1:** Galerías y Clientes se suman a `panelSections`. En el celular, con más de una sección, hace falta el menú (en el prototipo, la hoja de Mesa de luz).
 - **Doble envío:** dos Enter seguidos en el login hacen dos envíos. El botón pendiente de React Aria no bloquea el envío implícito del formulario. Es inofensivo al entrar.
 - **Capturas automáticas** de estas pantallas con Playwright: A2, parte 2 (#52).
