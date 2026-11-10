@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useActionState } from 'react';
 
-import { FormMessage, linkClass, TextField } from '@/components/ui/form';
+import { Message } from '@/components/ui/message';
 import { SubmitButton } from '@/components/ui/submit-button';
+import { TextField } from '@/components/ui/text-field';
+import { TextLink } from '@/components/ui/text-link';
 import { t } from '@/i18n/es-MX';
 
 import { requestPasswordReset } from '../actions';
@@ -14,12 +15,10 @@ export function PasswordResetRequestForm() {
   const [state, formAction] = useActionState(requestPasswordReset, initialFormState);
 
   return (
-    <form action={formAction} noValidate className="space-y-4">
-      {state.status === 'error' && (
-        <FormMessage tone="error">{t.auth.errors[state.error]}</FormMessage>
-      )}
+    <form action={formAction} noValidate className="flex flex-col gap-4">
+      {state.status === 'error' && <Message tone="error">{t.auth.errors[state.error]}</Message>}
       {state.status === 'sent' ? (
-        <FormMessage tone="success">{t.auth.forgot.sent}</FormMessage>
+        <Message tone="success">{t.auth.forgot.sent}</Message>
       ) : (
         <>
           <TextField
@@ -27,16 +26,15 @@ export function PasswordResetRequestForm() {
             name="email"
             type="email"
             autoComplete="email"
-            required
+            isRequired
+            validationBehavior="aria"
             defaultValue={state.status === 'error' ? state.email : undefined}
           />
           <SubmitButton label={t.auth.forgot.submit} pendingLabel={t.auth.forgot.submitting} />
         </>
       )}
       <p className="text-center">
-        <Link href="/admin/login" className={linkClass}>
-          {t.auth.forgot.backToLogin}
-        </Link>
+        <TextLink href="/admin/login">{t.auth.forgot.backToLogin}</TextLink>
       </p>
     </form>
   );
