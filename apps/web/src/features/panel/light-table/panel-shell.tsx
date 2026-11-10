@@ -43,7 +43,7 @@ export function LightTableShell({
       <main
         id="panel-main"
         tabIndex={-1}
-        className="light-table mx-2.5 flex-1 rounded-t-ui px-5 pt-8 pb-12 sm:mx-auto sm:w-full sm:max-w-[62.5rem] sm:px-18 sm:pt-13"
+        className="light-table mx-2.5 outline-none flex-1 rounded-t-ui px-5 pt-8 pb-12 sm:mx-auto sm:w-full sm:max-w-[62.5rem] sm:px-18 sm:pt-13"
       >
         {children}
       </main>
