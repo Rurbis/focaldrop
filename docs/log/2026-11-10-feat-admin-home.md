@@ -1,6 +1,6 @@
 # feat(web): show the signed-in member and their agency on the panel's home
 
-Issue: #12 · PR: — · Autor: Rubén
+Issue: #12 · PR: #89 · Autor: Rubén
 
 ## Decisiones
 
@@ -8,7 +8,7 @@ Issue: #12 · PR: — · Autor: Rubén
 
 ## Historial
 
-- 2026-11-10: **F3, parte web → PR: el inicio del panel con el perfil y la agencia (#12).** El Server Component pide `GET /admin/me` a Nest de servidor a servidor (D62), con el token verificado y el host de la petición. Muestra cinco estados:
+- 2026-11-10: **F3, parte web → PR #89: el inicio del panel con el perfil y la agencia (#12).** El Server Component pide `GET /admin/me` a Nest de servidor a servidor (D62), con el token verificado y el host de la petición. Muestra cinco estados:
   - **listo:** saludo con el nombre, la agencia y el rol;
   - **cargando:** `loading.tsx`, mientras Nest responde o Cloud Run despierta;
   - **sin acceso:** 403;
