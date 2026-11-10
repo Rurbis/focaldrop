@@ -1,6 +1,6 @@
 # feat(web): put the access pages and the panel on the light table
 
-Issue: #53 · PR: #PENDIENTE · Autor: Rubén
+Issue: #53 · PR: #91 · Autor: Rubén
 
 ## Decisiones
 
