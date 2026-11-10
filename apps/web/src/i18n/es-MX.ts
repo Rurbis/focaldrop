@@ -20,20 +20,33 @@ export const t = {
     home: {
       title: 'Inicio',
       greeting: 'Hola,',
-      intro: 'Aquí verás el resumen de tu agencia y de tus galerías.',
       agency: 'Agencia',
       role: 'Tu rol',
       roles: {
         owner: 'Titular',
         staff: 'Equipo',
       },
-      loading: 'Cargando los datos de tu agencia…',
+      next: {
+        title: 'Lo que sigue',
+        ready: 'Tu panel está listo',
+        readyAs: {
+          owner: (agency: string) => `Entraste como titular de ${agency}.`,
+          staff: (agency: string) => `Entraste como parte del equipo de ${agency}.`,
+        },
+        soon: 'Clientes y galerías',
+        soonBody:
+          'Muy pronto vas a dar de alta a tus clientes, subir sus fotos y mandarles su galería desde aquí.',
+        soonBadge: 'Muy pronto',
+      },
+      loading: 'Cargando tu inicio…',
+      // No invitations in the MVP (P-C2): the owner is the only member.
       noAccess:
-        'Tu cuenta no tiene acceso al panel de esta agencia. Si crees que es un error, pide a quien la administra que te invite. Para entrar con otra cuenta, usa «Salir».',
-      unavailable: 'No pudimos cargar los datos de tu agencia. Intenta de nuevo en unos segundos.',
+        'Tu cuenta no tiene acceso al panel de esta agencia. Revisa que entraste con el correo correcto. Para usar otra cuenta, usa «Salir».',
+      unavailable: 'No pudimos cargar tu inicio. Intenta de nuevo en unos segundos.',
       retry: 'Reintentar',
       retrying: 'Reintentando…',
     },
+    logoHome: 'Focal Drop, ir al inicio',
     signOut: 'Salir',
   },
   auth: {
@@ -46,6 +59,7 @@ export const t = {
     login: {
       title: 'Iniciar sesión',
       intro: 'Entra al panel de tu agencia.',
+      introFor: (agency: string) => `Entra al panel de ${agency}.`,
       submit: 'Entrar',
       submitting: 'Entrando…',
       forgotLink: '¿Olvidaste tu contraseña?',
