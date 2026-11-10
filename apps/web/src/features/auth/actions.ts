@@ -23,7 +23,7 @@ export async function signIn(_previous: FormState, formData: FormData): Promise<
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { status: 'error', error: authErrorKey(error), email };
 
-  redirect('/admin');
+  return { status: 'signed-in' };
 }
 
 export async function signOut(): Promise<void> {
@@ -69,5 +69,5 @@ export async function updatePassword(_previous: FormState, formData: FormData): 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) return { status: 'error', error: authErrorKey(error) };
 
-  redirect('/admin');
+  return { status: 'signed-in' };
 }
