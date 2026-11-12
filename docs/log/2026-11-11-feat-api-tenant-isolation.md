@@ -1,6 +1,6 @@
 # feat(api): enforce tenant membership, roles and scoped repositories
 
-Issue: #14 · Autor: Fabian
+Issue: #14 · PR: #92 · Autor: Fabian
 
 ## Decisiones
 
