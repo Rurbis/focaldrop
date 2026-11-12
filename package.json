@@ -28,18 +28,18 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@next/eslint-plugin-next": "16.4.2",
-    "eslint": "10.12.0",
+    "@next/eslint-plugin-next": "16.4.3",
+    "eslint": "10.13.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.13.0",
     "husky": "9.1.7",
     "lint-staged": "17.6.0",
     "prettier": "3.9.10",
-    "supabase": "2.121.0",
-    "turbo": "2.11.7",
+    "supabase": "2.122.0",
+    "turbo": "2.11.10",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.1"
+    "typescript-eslint": "8.72.1"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs}": [
