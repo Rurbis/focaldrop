@@ -2,8 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { Logo, LogoSymbol } from '@/components/brand/logo';
-import { Button } from '@/components/ui/button';
-import { signOut } from '@/features/auth/actions';
+import { SignOutButton } from '@/features/auth/components/sign-out-button';
 import { t } from '@/i18n/es-MX';
 
 import { PanelNav } from './panel-nav';
@@ -35,11 +34,7 @@ export function LightTableShell({
             it sits muted beside «Salir», after the sections. */}
         <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5 sm:ml-auto sm:flex-none">
           {agency}
-          <form action={signOut}>
-            <Button type="submit" variant="quiet" size="sm">
-              {t.admin.signOut}
-            </Button>
-          </form>
+          <SignOutButton />
         </div>
       </header>
       <main

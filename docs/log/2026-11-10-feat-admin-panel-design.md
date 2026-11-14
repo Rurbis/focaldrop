@@ -39,6 +39,10 @@ Issue: #53 · PR: #91 · Autor: Rubén
     - el login ya no tiene scroll horizontal;
     - el saludo usa el primer nombre, porque con el nombre completo llegaba a 6 líneas y el plan §4 permite 2.
   - **Pruebas nuevas:** contraste de tokens, sección actual, texto del login y primer nombre. Al romper a propósito cada regla, falla una prueba.
+- 2026-11-13: **Revisión de Fabian al PR #91 (P2):** al pulsar «Salir» en un dominio, el login nombraba la agencia de otro hasta recargar. La causa era la misma que el #89 corrigió al entrar: `signOut` usaba `redirect()`, y en `next dev` Next renderizaba el login por su cuenta con un host de loopback.
+  - **Corrección:** `signOut` ya no redirige. El botón «Salir» (`SignOutButton`) cierra la sesión y abre el login desde el navegador, con el dominio real.
+  - **Regresión:** una prueba exige que `signOut` no redirija y que cierre solo la sesión de ese navegador. Falla con el código anterior.
+  - **Probado en local** con dos agencias por dominio: con la cuenta de otra agencia en `beta.localhost`, el 403 y «Salir» llevan al login de Estudio Beta.
 
 ## Tiempo
 
