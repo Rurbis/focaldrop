@@ -1,7 +1,5 @@
 'use server';
 
-import { redirect } from 'next/navigation';
-
 import { createClient } from '@/lib/supabase/server';
 
 import { authErrorKey } from './errors';
@@ -26,11 +24,16 @@ export async function signIn(_previous: FormState, formData: FormData): Promise<
   return { status: 'signed-in' };
 }
 
+/**
+ * Ends the session; SignOutButton then opens the login from the browser. Not
+ * `redirect()` here: Next would render the login by itself, and under `next dev`
+ * or `next start` that request reaches the page with a loopback host, so the
+ * login named another agency until reloaded (review of PR #91).
+ */
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
   // Only this browser: other devices keep their session.
   await supabase.auth.signOut({ scope: 'local' });
-  redirect('/admin/login');
 }
 
 export async function requestPasswordReset(

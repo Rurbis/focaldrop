@@ -1,12 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 
 const resetPasswordForEmail = vi.fn();
+const signOutOfSupabase = vi.fn();
+const redirect = vi.fn((path: string) => {
+  throw new Error(`NEXT_REDIRECT ${path}`);
+});
 
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: () => Promise.resolve({ auth: { resetPasswordForEmail } }),
+  createClient: () =>
+    Promise.resolve({ auth: { resetPasswordForEmail, signOut: signOutOfSupabase } }),
 }));
+vi.mock('next/navigation', () => ({ redirect }));
 
-const { requestPasswordReset } = await import('./actions');
+const { requestPasswordReset, signOut } = await import('./actions');
 const { initialFormState } = await import('./form-state');
 
 function form(email: string) {
@@ -55,5 +61,26 @@ describe('requestPasswordReset', () => {
       email: 'owner@',
     });
     expect(resetPasswordForEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('signOut', () => {
+  beforeEach(() => {
+    signOutOfSupabase.mockReset().mockResolvedValue({ error: null });
+    redirect.mockClear();
+  });
+
+  it('ends only this browser session', async () => {
+    await signOut();
+    expect(signOutOfSupabase).toHaveBeenCalledWith({ scope: 'local' });
+  });
+
+  // A redirect() here makes Next render the login by itself, and under next dev
+  // or next start that request reaches the page with a loopback host: the login
+  // named the agency of another domain until reloaded (review of PR #91). The
+  // browser navigates instead, with its real host.
+  it('returns instead of redirecting from the server', async () => {
+    await expect(signOut()).resolves.toBeUndefined();
+    expect(redirect).not.toHaveBeenCalled();
   });
 });

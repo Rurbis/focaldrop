@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useActionState } from 'react';
 
-import { FormMessage, linkClass, TextField } from '@/components/ui/form';
+import { Message } from '@/components/ui/message';
 import { SubmitButton } from '@/components/ui/submit-button';
+import { TextField } from '@/components/ui/text-field';
+import { TextLink } from '@/components/ui/text-link';
 import { t } from '@/i18n/es-MX';
 
 import { signIn } from '../actions';
@@ -17,16 +18,18 @@ export function SignInForm({ notice }: { notice: 'linkInvalid' | 'sessionEnded' 
   const error = state.status === 'error' ? state.error : signedIn ? null : notice;
 
   return (
-    // noValidate: the server validates and answers in Spanish from the
-    // dictionary, instead of the browser's messages in the browser's language.
-    <form action={formAction} noValidate className="space-y-4">
-      {error && <FormMessage tone="error">{t.auth.errors[error]}</FormMessage>}
+    // noValidate and validationBehavior="aria": the server validates and answers
+    // in Spanish from the dictionary, instead of the browser in its own language.
+    <form action={formAction} noValidate className="flex flex-col gap-4">
+      {error && <Message tone="error">{t.auth.errors[error]}</Message>}
       <TextField
         label={t.auth.fields.email}
         name="email"
         type="email"
         autoComplete="email"
-        required
+        spellCheck={false}
+        isRequired
+        validationBehavior="aria"
         defaultValue={state.status === 'error' ? state.email : undefined}
       />
       <TextField
@@ -34,7 +37,8 @@ export function SignInForm({ notice }: { notice: 'linkInvalid' | 'sessionEnded' 
         name="password"
         type="password"
         autoComplete="current-password"
-        required
+        isRequired
+        validationBehavior="aria"
       />
       <SubmitButton
         label={t.auth.login.submit}
@@ -42,9 +46,7 @@ export function SignInForm({ notice }: { notice: 'linkInvalid' | 'sessionEnded' 
         busy={signedIn}
       />
       <p className="text-center">
-        <Link href="/admin/forgot-password" className={linkClass}>
-          {t.auth.login.forgotLink}
-        </Link>
+        <TextLink href="/admin/forgot-password">{t.auth.login.forgotLink}</TextLink>
       </p>
     </form>
   );

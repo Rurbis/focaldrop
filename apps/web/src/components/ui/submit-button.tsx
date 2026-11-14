@@ -2,11 +2,12 @@
 
 import { useFormStatus } from 'react-dom';
 
-import { buttonClass } from './form';
+import { Button } from './button';
 
 /**
  * Submit button that shows progress and blocks double submits while the action
  * runs, and also while `busy`, such as when the next page is already loading.
+ * React Aria keeps a pending button focusable and announces the wait.
  */
 export function SubmitButton({
   label,
@@ -19,8 +20,13 @@ export function SubmitButton({
 }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending || busy} className={buttonClass}>
-      {pending || busy ? pendingLabel : label}
-    </button>
+    <Button
+      type="submit"
+      isPending={pending || busy}
+      pendingLabel={pendingLabel}
+      className="w-full"
+    >
+      {label}
+    </Button>
   );
 }

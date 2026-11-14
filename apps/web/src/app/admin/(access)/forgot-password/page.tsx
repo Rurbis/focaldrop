@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 export default function ForgotPasswordPage() {
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">{t.auth.forgot.title}</h1>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">{t.auth.forgot.intro}</p>
+      <h1 className="text-page font-semibold tracking-tight text-balance">{t.auth.forgot.title}</h1>
+      <p className="mt-1.5 mb-7 text-body text-ink-muted">{t.auth.forgot.intro}</p>
       <PasswordResetRequestForm />
     </>
   );
