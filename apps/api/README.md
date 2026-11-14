@@ -248,6 +248,66 @@ The e2e tests sign tokens with a test key pair and serve the JWKS over local HTT
 so fetching, caching and rotation run as in staging. They need no database. The
 integration test reads real memberships with `SET LOCAL ROLE app_api`.
 
+## Tenant authorization and private repositories (F5, issue #14)
+
+Private controllers import `AuthModule` and apply the guards in this order:
+
+```ts
+@UseGuards(AuthGuard, TenantGuard, RolesGuard)
+```
+
+`AuthGuard` verifies the JWT subject. `TenantGuard` looks up that user's current
+membership through `AuthRepository`, scoped to `TenantContext`, and makes it
+available through `@CurrentMember()`. `RolesGuard` checks `@Roles('owner')` or
+`@Roles('owner', 'staff')` against that membership, never a JWT metadata role,
+body field or `profiles.is_platform_admin`. Memberships and roles are read on
+every request, independently of the public tenant cache.
+
+Method role metadata overrides class metadata. Without `@Roles`, any verified
+member is allowed; an empty role list allows nobody. A missing earlier guard
+fails closed. `AuthModule` exports the guards and their dependencies so another
+feature module can use them without redefining authentication providers.
+
+Missing membership on a private resource returns **404**, just like an unknown
+resource. A member with an insufficient role receives **403** before resource
+lookup. `/admin/me` explicitly uses
+`@TenantAccess({ onMissingMembership: 'forbidden' })` to keep its existing 403
+contract, so the panel can explain that this account has no access. Its body is
+unchanged, and the membership query runs only once per request.
+
+Repositories for tables with `agencyId` extend `TenantRepository` and receive
+`DatabaseService`, `TenantContext` and their table in the base constructor.
+Their module also imports `DatabaseModule` and `TenancyModule`.
+
+- `selectForTenant(fields, ...conditions)`, `updateForTenant(values, ...conditions)`
+  and `deleteForTenant(...conditions)` always combine their predicates with the
+  context's agency ID. Even a list with no additional condition is scoped.
+- `insertForTenant(values)` supplies that agency ID. Inserts and updates overwrite
+  a caller-supplied `agencyId` at runtime as well as omitting it from their input
+  types; a body cannot transfer a record to another agency.
+- These builders already have their filter and do not expose a raw database
+  handle. Methods can add joins, limits and `returning()`. A resource lookup or
+  mutation must throw `NotFoundException` when no row is returned. Joins must
+  still express the correct relationship; the base scopes the repository's table.
+- All four operations reject a missing context before touching the database.
+  Public tenant discovery and administrative provisioning remain explicit
+  exceptions because they establish that context outside private requests.
+
+`AuthRepository` uses this base for `agency_members` and joins the global profile
+by user ID. `AuthService` renders the member already checked by the guards.
+No schema migration or per-agency RLS change is needed for F5; layer 2 of
+[ADR-0001](../../docs/adr/0001-shared-database-multi-tenancy.md) is still required
+before onboarding a second real agency.
+
+`pnpm --filter @focaldrop/api test:cov` runs unit and HTTP tests and enforces at
+least 90% statements, branches, functions and lines **per guard file**. `pnpm test`
+runs this check before database integrations. The isolation suite uses signed
+test JWTs, a local JWKS and real PostgreSQL with `app_api`: positive reads/writes,
+foreign-resource reads/updates/deletes, forged agency IDs and roles, revocation,
+different roles across agencies and concurrent requests. Its test-only controllers
+use `agency_domains` as existing tenant-owned resources and are excluded from the
+production build; F5 adds no artificial business endpoints.
+
 ## Local demo (issue #15)
 
 With Docker and Supabase running, first generate `infra/supabase/.env.local` as
