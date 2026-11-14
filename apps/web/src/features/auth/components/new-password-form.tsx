@@ -9,9 +9,11 @@ import { t } from '@/i18n/es-MX';
 import { updatePassword } from '../actions';
 import { initialFormState } from '../form-state';
 import { PASSWORD_MIN_LENGTH } from '../password-policy';
+import { useOpenPanelWhenSignedIn } from './open-panel';
 
 export function NewPasswordForm() {
   const [state, formAction] = useActionState(updatePassword, initialFormState);
+  const signedIn = useOpenPanelWhenSignedIn(state);
 
   return (
     <form action={formAction} noValidate className="space-y-4">
@@ -34,7 +36,11 @@ export function NewPasswordForm() {
         minLength={PASSWORD_MIN_LENGTH}
         required
       />
-      <SubmitButton label={t.auth.reset.submit} pendingLabel={t.auth.reset.submitting} />
+      <SubmitButton
+        label={t.auth.reset.submit}
+        pendingLabel={t.auth.reset.submitting}
+        busy={signedIn}
+      />
     </form>
   );
 }
