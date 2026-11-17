@@ -30,6 +30,9 @@ overrides:
   # each once those packages accept glob 14.0.2 and minimatch 11.0.1 or newer.
   'glob@>=9.0.0 <14.0.2': 14.0.3
   'minimatch@>=7.0.0 <11.0.1': 11.0.4
+  # minimatch 11 asks for ^1.0.3 of this package, created on 2026-10-26; 1.1.0
+  # came out on 2026-11-05. Keep 1.0.3 until a newer one is 14 days old (D131).
+  '@isaacs/nonrecursive-glob-match': 1.0.3
   # drizzle-kit 0.31 still declares @esbuild-kit (abandoned, merged into tsx),
   # which pins esbuild 0.18 with the dev-server advisory GHSA-67mh-4wv8-2f99
   # (Dependabot #18). drizzle-kit never loads it, so it gets the esbuild that
