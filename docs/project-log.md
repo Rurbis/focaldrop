@@ -6,7 +6,7 @@
 
 - **Última actualización:** 2026-11-17, con la tercera integración semanal de las notas de `docs/log/` (D138).
 - **Trabajo en revisión:** F5 (#14) en el [PR #92](https://github.com/Rurbis/focaldrop/pull/92) de Fabian, con un cambio pedido; las pantallas del panel con la marca (#53) en el [PR #91](https://github.com/Rurbis/focaldrop/pull/91) de Rubén, con la corrección que pidió Fabian y esperando su nueva revisión; y la propuesta de caché para F6 ([PR #82](https://github.com/Rurbis/focaldrop/pull/82), borrador).
-- **Estado:** Fases 1 y 2 **aprobadas (2026-10-11)** · **Fase 3 en curso: hito 0**, que cerraba el 2026-11-15 y sigue abierto · **staging en vivo:** front con login, Sentry y el inicio del panel con el perfil y la agencia en https://focaldrop-web-staging.focaldrop.workers.dev (D137, D145, D149) y API en Cloud Run (D140) · cerradas: #1–#13, #15–#18, #22–#24, #26, #30, #51 y #71; #19 y #20 integradas en #13 y #12 (D138); tiempos reales en §10 · **abiertas:** F5 (#14), F6 (#21 y #25), #27 y las *Should* #52 y #53 · **siguiente:** mezclar F5 (#92) y la A3 (#91), F6 y el cierre del hito con la demo (#27).
+- **Estado:** Fases 1 y 2 **aprobadas (2026-10-11)** · **Fase 3 en curso: hito 0**, que cerraba el 2026-11-15 y sigue abierto · **staging en vivo:** front con login, Sentry y el inicio del panel con el perfil y la agencia en https://focaldrop-web-staging.focaldrop.workers.dev (D137, D145, D149) y API en Cloud Run (D140) · cerradas: #1–#13, #15–#18, #22–#24, #26, #30, #51 y #71; #19 y #20 integradas en #13 y #12 (D138); tiempos reales en §10 · **abiertas:** F5 (#14), F6 (#21 y #25), #27 y las *Should* #52 y #53 · **siguiente:** mezclar F5 (#92) y la A3 (#91), F6 y el cierre del hito (#27).
 - **Nombre de la plataforma:** **Focal Drop** (D118), identificador técnico `focaldrop`. Antes: nombre en clave `darkroom` (D98).
 - **Repo:** https://github.com/Rurbis/focaldrop (local: `…\Fotos Jr\focaldrop`) · **Tablero:** https://github.com/users/Rurbis/projects/1
 
@@ -360,7 +360,7 @@ Revisión integral de las Partes A y B con la pregunta "¿esto lo pueden constru
   - Pantallas del panel con la marca (#53, PR #91 de Rubén): corregido el P2 de la revisión de Fabian; espera su nueva revisión.
   - F6, cierre de S-4 (#21) con la ADR-0010 (#25): la toma Fabian después de F5. Parte de su propuesta del PR #82 y de la implementación anterior del #78 (`30c6c99`), que queda como referencia y no como decisión. Next 16 recomienda `use cache`: hay que comprobar en el Worker, además de en Next local, que funciona y que se puede invalidar (D148).
   - Capturas de Playwright en CI (#52, segunda parte), *Should*.
-  - Cierre del hito: demo a la agencia, retro, tag `v0.0.1` y tablero del hito 1 (#27). La demo se agenda cuando entren F5 y la A3.
+  - Cierre del hito: demo a la agencia, retro, tag `v0.0.1` y tablero del hito 1 (#27). Rubén y Fabian deciden cuándo hacer la demo.
   - Ya cerradas desde la integración anterior: F1 (#13; PRs #61 y #78, D141 y D148), F3 (#12; PRs #84 y #89, D147 y D149), el alta de staging (#71, PR #79, D146) y `CLAUDE.md` con `AGENTS.md` (#26, PR #81).
 - **Pendientes de las notas de la tercera integración** (2026-11-17):
   - **Probar el panel con el owner real en staging:** el #84 dejó para la parte web la prueba con un token real de Supabase, y el #89 se probó con Supabase local. Se hace al preparar la demo.
