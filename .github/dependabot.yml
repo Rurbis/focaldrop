@@ -33,6 +33,10 @@ updates:
       # Remove this rule once @cloudflare/vitest-pool-workers accepts vitest@5.
       - dependency-name: 'vitest'
         update-types: ['version-update:semver-major']
+      # Its companion packages (@vitest/coverage-v8 and the rest) require the
+      # exact same Vitest version, so they move with the rule above.
+      - dependency-name: '@vitest/*'
+        update-types: ['version-update:semver-major']
     labels: ['type:chore', 'area:infra']
     commit-message:
       prefix: 'chore(deps)'
