@@ -1,5 +1,5 @@
 import { defineCloudflareConfig } from '@opennextjs/cloudflare';
 
-// Defaults: no incremental cache yet. The tag cache for revalidateTag arrives
-// with the pages that use it (#19, #20) and closes the S-4 spike (#21).
+// F1 needs no persistent cache. Cache storage and tag invalidation are
+// evaluated with F6/S-4 (#21) and recorded in ADR-0010.
 export default defineCloudflareConfig();

@@ -24,6 +24,8 @@ export async function bootstrap(env: Env): Promise<void> {
 
 // HTTP settings shared by the server and the e2e tests.
 export function configureApp(app: NestExpressApplication): void {
+  // Nobody needs to know which framework answers, same as the front.
+  app.disable('x-powered-by');
   // Compressed request bodies get a 415 instead of being inflated. Nothing
   // sends them to the API (the browser talks to Next, which forwards plain
   // JSON), and decompressing untrusted input was the path of two October 2026
