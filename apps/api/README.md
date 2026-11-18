@@ -282,6 +282,8 @@ Their module also imports `DatabaseModule` and `TenancyModule`.
 - `selectForTenant(fields, ...conditions)`, `updateForTenant(values, ...conditions)`
   and `deleteForTenant(...conditions)` always combine their predicates with the
   context's agency ID. Even a list with no additional condition is scoped.
+  Select predicates may be `undefined`, so optional filters can be passed here
+  without using Drizzle's dynamic query mode.
 - `insertForTenant(values)` supplies that agency ID. Inserts and updates overwrite
   a caller-supplied `agencyId` at runtime as well as omitting it from their input
   types; a body cannot transfer a record to another agency.
@@ -292,6 +294,13 @@ Their module also imports `DatabaseModule` and `TenancyModule`.
 - All four operations reject a missing context before touching the database.
   Public tenant discovery and administrative provisioning remain explicit
   exceptions because they establish that context outside private requests.
+
+ESLint forbids `$dynamic` and `onConflictDoUpdate` in `apps/api/src`, except
+`src/db/**` (administrative provisioning and seed). `$dynamic().where()` replaces
+the existing tenant predicate, and an upsert can update another agency's row
+through a globally unique value. The returned Drizzle builders expose these
+methods; the lint rule enforces this restriction in CI. Pass optional conditions
+to `selectForTenant` instead.
 
 `AuthRepository` uses this base for `agency_members` and joins the global profile
 by user ID. `AuthService` renders the member already checked by the guards.

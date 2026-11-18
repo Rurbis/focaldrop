@@ -9,7 +9,8 @@ type AgencyTable = PgTable & { agencyId: AnyPgColumn<{ data: string }> };
 /**
  * Private repositories get their agency only from the request context (D59).
  * The returned builders already have their WHERE clause; callers can add joins,
- * limits or RETURNING, but cannot replace the agency filter through this API.
+ * limits or RETURNING. ESLint forbids $dynamic and onConflictDoUpdate outside
+ * src/db because those methods can bypass the agency scope.
  * Public tenant discovery and administrative provisioning do not use this base.
  */
 export abstract class TenantRepository<TTable extends AgencyTable> {
@@ -21,7 +22,7 @@ export abstract class TenantRepository<TTable extends AgencyTable> {
 
   protected selectForTenant<TSelection extends SelectedFields>(
     fields: TSelection,
-    ...conditions: SQL[]
+    ...conditions: (SQL | undefined)[]
   ) {
     const scope = this.scope(conditions);
     const table: PgTable = this.table;
@@ -49,7 +50,7 @@ export abstract class TenantRepository<TTable extends AgencyTable> {
     return this.database.db.delete(this.table).where(scope);
   }
 
-  private scope(conditions: SQL[]): SQL {
+  private scope(conditions: (SQL | undefined)[]): SQL {
     // With no additional predicate, this still selects only this agency.
     return and(eq(this.table.agencyId, this.context.get().id), ...conditions)!;
   }
