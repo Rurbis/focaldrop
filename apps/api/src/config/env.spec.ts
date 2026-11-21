@@ -1,4 +1,4 @@
-import { validateEnv } from './env.js';
+import { validateEnv, validateServerEnv } from './env.js';
 
 describe('validateEnv', () => {
   it('converts PORT from a string to a number', () => {
@@ -112,4 +112,36 @@ describe('validateEnv', () => {
       expect(() => validateEnv({ NODE_ENV: 'production', SENTRY_DSN })).toThrow(/SENTRY_DSN/);
     },
   );
+
+  it.each([
+    'not-a-url',
+    'ftp://abc.supabase.co/auth/v1/.well-known/jwks.json',
+    // The issuer comes from this URL, so it must be the Auth one.
+    'https://abc.supabase.co/rest/v1/keys.json',
+  ])('rejects an invalid JWKS URL: %s', (SUPABASE_JWKS_URL) => {
+    expect(() => validateEnv({ NODE_ENV: 'development', SUPABASE_JWKS_URL })).toThrow(
+      /SUPABASE_JWKS_URL/,
+    );
+  });
+});
+
+describe('validateServerEnv', () => {
+  it.each(['staging', 'production'])('requires the JWKS URL when APP_ENV is %s', (APP_ENV) => {
+    expect(() => validateServerEnv({ NODE_ENV: 'production', APP_ENV })).toThrow(
+      /Invalid environment configuration: SUPABASE_JWKS_URL/,
+    );
+  });
+
+  it('accepts a deployed environment with a JWKS URL', () => {
+    const SUPABASE_JWKS_URL = 'https://abc.supabase.co/auth/v1/.well-known/jwks.json';
+
+    expect(
+      validateServerEnv({ NODE_ENV: 'production', APP_ENV: 'staging', SUPABASE_JWKS_URL })
+        .SUPABASE_JWKS_URL,
+    ).toBe(SUPABASE_JWKS_URL);
+  });
+
+  it.each(['development', 'test'])('does not require it in %s', (NODE_ENV) => {
+    expect(validateServerEnv({ NODE_ENV }).SUPABASE_JWKS_URL).toBeUndefined();
+  });
 });

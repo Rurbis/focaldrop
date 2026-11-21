@@ -82,13 +82,14 @@ jobs:
         env:
           SENTRY_DSN: ${{ vars.API_SENTRY_DSN }}
           DEFAULT_AGENCY_SLUG: ${{ secrets.DEFAULT_AGENCY_SLUG }}
+          SUPABASE_JWKS_URL: ${{ vars.SUPABASE_JWKS_URL }}
         run: |
           gcloud run deploy "$SERVICE" \
             --image="$IMAGE" \
             --region="$REGION" \
             --service-account="$RUNTIME_SA" \
             --max-instances=2 \
-            --set-env-vars="NODE_ENV=production,APP_ENV=staging,DEFAULT_AGENCY_SLUG=${DEFAULT_AGENCY_SLUG},SENTRY_ENVIRONMENT=staging,SENTRY_DSN=${SENTRY_DSN}" \
+            --set-env-vars="NODE_ENV=production,APP_ENV=staging,DEFAULT_AGENCY_SLUG=${DEFAULT_AGENCY_SLUG},SENTRY_ENVIRONMENT=staging,SENTRY_DSN=${SENTRY_DSN},SUPABASE_JWKS_URL=${SUPABASE_JWKS_URL}" \
             --set-secrets="DATABASE_URL=${DB_SECRET}:latest" \
             --quiet
           url=$(gcloud run services describe "$SERVICE" --region="$REGION" --format='value(status.url)')
@@ -97,4 +98,12 @@ jobs:
       - name: Smoke test
         env:
           URL: ${{ steps.deploy.outputs.url }}
-        run: curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$URL/health"
+        # The fake token names an unknown key, so the API has to read the JWKS:
+        # 401 means it could, 500 that SUPABASE_JWKS_URL or the network is wrong.
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$URL/health"
+          status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --header 'X-Tenant-Host: focaldrop-web-staging.focaldrop.workers.dev' \
+            --header 'Authorization: Bearer eyJhbGciOiJFUzI1NiIsImtpZCI6InNtb2tlIn0.e30.c21va2U' \
+            "$URL/admin/me")
+          test "$status" = 401

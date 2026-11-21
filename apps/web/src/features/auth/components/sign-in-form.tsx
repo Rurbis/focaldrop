@@ -9,10 +9,12 @@ import { t } from '@/i18n/es-MX';
 
 import { signIn } from '../actions';
 import { initialFormState } from '../form-state';
+import { useOpenPanelWhenSignedIn } from './open-panel';
 
-export function SignInForm({ linkExpired }: { linkExpired: boolean }) {
+export function SignInForm({ notice }: { notice: 'linkInvalid' | 'sessionEnded' | null }) {
   const [state, formAction] = useActionState(signIn, initialFormState);
-  const error = state.status === 'error' ? state.error : linkExpired ? 'linkInvalid' : null;
+  const signedIn = useOpenPanelWhenSignedIn(state);
+  const error = state.status === 'error' ? state.error : signedIn ? null : notice;
 
   return (
     // noValidate: the server validates and answers in Spanish from the
@@ -34,7 +36,11 @@ export function SignInForm({ linkExpired }: { linkExpired: boolean }) {
         autoComplete="current-password"
         required
       />
-      <SubmitButton label={t.auth.login.submit} pendingLabel={t.auth.login.submitting} />
+      <SubmitButton
+        label={t.auth.login.submit}
+        pendingLabel={t.auth.login.submitting}
+        busy={signedIn}
+      />
       <p className="text-center">
         <Link href="/admin/forgot-password" className={linkClass}>
           {t.auth.login.forgotLink}
