@@ -21,6 +21,8 @@ export default defineConfig([
     '**/.turbo/',
     '**/.wrangler/',
     '**/coverage/',
+    '**/playwright-report/',
+    '**/test-results/',
     '**/next-env.d.ts',
   ]),
   js.configs.recommended,
