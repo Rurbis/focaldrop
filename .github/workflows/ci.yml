@@ -159,9 +159,10 @@ jobs:
         run: pnpm db:stop
 
   visual:
-    # Compares key pages against their reference images (#52). Not a required
-    # check yet: it becomes one with B2, the first gallery screens (design plan
-    # §7). Same Playwright image as `test:visual:docker`, so references match.
+    # Compares key pages against their reference images (#52) and checks them
+    # with axe against WCAG 2.2 A and AA. Not a required check yet: it becomes
+    # one with B2, the first gallery screens (design plan §7). Same Playwright
+    # image as `test:visual:docker`, so references match.
     needs: quality
     if: needs.quality.outputs.visual == 'true'
     runs-on: ubuntu-latest
@@ -174,7 +175,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Build shared
         run: pnpm --filter @focaldrop/shared build
-      - name: Compare screenshots
+      - name: Compare screenshots and check accessibility
         run: pnpm --filter @focaldrop/web test:visual
       # The report holds the expected, actual and diff images of each change.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
