@@ -5,9 +5,8 @@
  *
  * Each semantic variable holds its light and dark value with light-dark(), so
  * components never name a mode: the color scheme picks, and data-theme="light"
- * or "dark" forces one (the /admin/ui showcase uses both). The root stays light
- * until the panel screens use these tokens (A3, #53); then it becomes
- * "light dark" and follows the system.
+ * or "dark" forces one (the /admin/ui showcase uses both). Since the panel
+ * screens use them (A3, #53), the root is "light dark" and follows the system.
  * The build compiles light-dark() into var() switches, and a custom property
  * resolves those where it is declared, so every element that forces a theme
  * declares the tokens again; otherwise it would inherit the system's values.
@@ -15,7 +14,7 @@
  * bring their own variables and never reuse these (D39).
  */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 :root,
@@ -37,6 +36,14 @@
   --fd-success-soft: light-dark(#dcebdf, #1e3a27);
   --fd-warning: light-dark(#7a5200, #e7b95e);
   --fd-warning-soft: light-dark(#f3e4c4, #3d3016);
+  /* Mesa de luz (A3): the panel is a dim room and the work sits on one lit
+     table. On the table, raised fills and rules use the room's tone, so
+     secondary buttons and badges stay visible in dark mode. Only existing
+     palette values (D135). */
+  --fd-room: light-dark(#e9e3da, #141312);
+  --fd-table: light-dark(#fbf9f5, #2a2723);
+  --fd-table-raised: light-dark(#e9e3da, #141312);
+  --fd-table-line: light-dark(#ddd6cb, #141312);
 }
 
 [data-theme='light'] {
@@ -65,6 +72,8 @@
   --color-success-soft: var(--fd-success-soft);
   --color-warning: var(--fd-warning);
   --color-warning-soft: var(--fd-warning-soft);
+  --color-room: var(--fd-room);
+  --color-table: var(--fd-table);
 
   --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
 
@@ -83,9 +92,33 @@
   --radius-ui: 4px;
 }
 
+/* The lit table of Mesa de luz. Its children read raised and line from the
+   table, so components keep using bg-raised and border-line unchanged. */
+@utility light-table {
+  background-color: var(--fd-table);
+  --fd-raised: var(--fd-table-raised);
+  --fd-line: var(--fd-table-line);
+}
+
 @layer base {
   body {
     @apply bg-paper text-ink font-sans antialiased;
+  }
+
+  /* Browser surfaces in the palette too: selection, caret and the overscroll
+     ground behind the room of Mesa de luz. */
+  ::selection {
+    background-color: var(--fd-accent-soft);
+    color: var(--fd-ink);
+  }
+
+  input,
+  textarea {
+    caret-color: var(--fd-accent);
+  }
+
+  body:has(.bg-room) {
+    background-color: var(--fd-room);
   }
 
   :focus-visible {

@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react';
 
+import { Logo } from '@/components/brand/logo';
 import { t } from '@/i18n/es-MX';
 
-// Centered card for the pages that give access to the panel: login and password recovery.
+// Mesa de luz (A3): the access pages sit on the lit table in the middle of the
+// dim room, the same surface that holds the work once inside the panel.
 export default function AccessLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-neutral-50 px-4 py-12">
-      <div className="w-full max-w-sm">
-        <p className="mb-6 text-center text-lg font-semibold tracking-tight">{t.platform.name}</p>
-        <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-          {children}
-        </div>
+    <main className="flex min-h-dvh items-center justify-center bg-room px-3 py-10 sm:px-4">
+      <div className="light-table w-full max-w-[27.5rem] rounded-ui px-6 pt-8 pb-9 sm:px-11 sm:pt-10 sm:pb-10">
+        <Logo title={t.platform.name} className="mb-9 h-6.5 w-auto" />
+        {children}
       </div>
     </main>
   );

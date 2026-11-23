@@ -47,6 +47,18 @@ const pairs: [string, string, number][] = [
   ['field', 'paper', 3],
   // The focus ring of a menu item, over the item's focused tint and the menu.
   ['accent', 'raised', 3],
+  // Mesa de luz (A3): text in the room's top bar and on the lit table, and
+  // badges and secondary buttons filled with the table's raised tone.
+  ['ink', 'room', 4.5],
+  ['ink-muted', 'room', 4.5],
+  ['accent', 'room', 4.5],
+  ['ink', 'table', 4.5],
+  ['ink-muted', 'table', 4.5],
+  ['accent', 'table', 4.5],
+  ['danger', 'table', 4.5],
+  ['field', 'table', 3],
+  ['ink', 'table-raised', 4.5],
+  ['ink-muted', 'table-raised', 4.5],
 ];
 
 describe('design tokens', () => {
