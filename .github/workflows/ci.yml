@@ -54,6 +54,21 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      # pnpm's minimumReleaseAge applies when pnpm picks versions, not when it
+      # installs a lockfile as is, so the versions a PR adds are checked here
+      # against the npm registry (D131).
+      - name: Check the age of new dependency versions
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: pnpm check:release-age --base "$BASE_SHA"
+
+      # Repo-wide scripts in scripts/ belong to no package, so turbo skips them.
+      - name: Lint and test the repo scripts
+        run: |
+          pnpm exec eslint scripts
+          pnpm test:scripts
+
       - name: Lint and typecheck
         run: pnpm exec turbo run lint typecheck --affected
 

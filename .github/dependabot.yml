@@ -3,6 +3,10 @@
 # Cooldown: only versions published at least 14 days ago are proposed, the
 # two-week rule D122 set for actions, now for every dependency (D131).
 # Security updates are not delayed.
+# pnpm enforces the same 14 days on every version it resolves, transitive ones
+# included (minimumReleaseAge in pnpm-workspace.yaml). If a security fix needs
+# a younger version, pnpm refuses it: ship that update by hand, exempting the
+# exact version there.
 version: 2
 updates:
   # pnpm resolves the whole workspace from the root lockfile, so the root
