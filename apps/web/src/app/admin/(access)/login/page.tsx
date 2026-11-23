@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
+import { AgencyIntro } from '@/features/auth/components/agency-intro';
 import { SignInForm } from '@/features/auth/components/sign-in-form';
 import { getSessionClaims } from '@/features/auth/session';
 import { t } from '@/i18n/es-MX';
@@ -18,8 +20,12 @@ export default async function LoginPage({ searchParams }: PageProps<'/admin/logi
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">{t.auth.login.title}</h1>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">{t.auth.login.intro}</p>
+      <h1 className="text-page font-semibold tracking-tight text-balance">{t.auth.login.title}</h1>
+      <p className="mt-1.5 mb-7 text-body break-words text-ink-muted">
+        <Suspense fallback={t.auth.login.intro}>
+          <AgencyIntro />
+        </Suspense>
+      </p>
       <SignInForm
         notice={error === 'link' ? 'linkInvalid' : error === 'session' ? 'sessionEnded' : null}
       />
