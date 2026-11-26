@@ -11,7 +11,7 @@ import type { Request } from 'express';
 
 import { AccessTokenVerifier } from './access-token.verifier.js';
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   userId?: string;
 }
 
@@ -19,7 +19,9 @@ const BEARER_TOKEN = /^Bearer (\S+)$/i;
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(@Inject(AccessTokenVerifier) private readonly tokens: AccessTokenVerifier) {}
+  constructor(
+    @Inject(AccessTokenVerifier) private readonly tokens: Pick<AccessTokenVerifier, 'verify'>,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
