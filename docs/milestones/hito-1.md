@@ -17,7 +17,7 @@ Decididos por Rubén el 2026-11-26. Entran a la bitácora como D-nuevas, con la 
 | Cambio | Antes | Ahora | Por qué |
 | --- | --- | --- | --- |
 | **Producción ligera desde el hito 1** | Buckets de producción en el hito 3 | Supabase, R2, Cloud Run y los Workers de producción se montan en el hito 1, con dominio temporal | Los datos de clientes reales no deben convivir con staging ni con las previews de los PRs |
-| **Correo con Resend y `focaldrop.com`** | Resend y el dominio de la agencia en el hito 3 (D8) | Remitente de la plataforma con Reply-To de la agencia desde el hito 1. Al lanzar se cambia al dominio de la agencia | Los avisos del hito 1 necesitan salir de algún dominio, y de paso se arregla la recuperación de contraseña en staging |
+| **Correo con Resend y `mail.focaldrop.com`** | Resend y el dominio de la agencia en el hito 3 (D8) | Remitente de la plataforma, `Focal Drop <avisos@mail.focaldrop.com>`, con Reply-To de la agencia desde el hito 1. Va en un subdominio, como recomienda Resend, para no exponer la reputación de la raíz. Al lanzar se cambia al dominio de la agencia | Los avisos del hito 1 necesitan salir de algún dominio, y de paso se arregla la recuperación de contraseña en staging |
 | **El hito se parte en 1a y 1b** | Un solo bloque | 1a entrega y 1b automatiza | La agencia puede entregar antes, y los riesgos técnicos (subida y ZIP) van primero |
 | **El diseño B2 condiciona la vista del cliente** | B2 "en el hito 1" (D134) | El prototipo se aprueba en paralelo a los spikes, y la vista del cliente de 1a implementa lo aprobado | La galería es lo que el cliente de la agencia ve: no se entrega con una vista provisional |
 | **Dominio temporal `<slug>.focaldrop.com`** | `*.workers.dev` hasta el dominio propio (Parte C §2) | Un subdominio por agencia de `focaldrop.com` (`platform_subdomain`), hasta que la agencia tenga el suyo (D7) | El cliente de la agencia recibe un link que se ve profesional; el DNS de `focaldrop.com` ya está en Cloudflare |
@@ -58,7 +58,7 @@ Lo que no dice cada fila lo dicen las decisiones citadas. Todas las capacidades 
 - Workers de producción para el front y para el ZIP:
   - el front, con una ruta comodín `*.focaldrop.com/*` y un registro DNS comodín con proxy. Las *Custom Domains* de Workers no aceptan comodines ([rutas](https://developers.cloudflare.com/workers/configuration/routing/routes/)). La documentación no dice si las rutas comodín dependen del plan, así que se confirma al configurarlas;
   - el ZIP, en un host fijo de la plataforma, como `zip.focaldrop.com`. El certificado gratuito solo cubre un nivel de subdominio, y `zip.<slug>.focaldrop.com` no tendría certificado válido ([Universal SSL](https://developers.cloudflare.com/ssl/edge-certificates/universal-ssl/limitations/#hostname-coverage)). El link del ZIP va firmado, así que no necesita el host de la agencia.
-- Resend con `focaldrop.com` verificado (SPF y DKIM en Cloudflare), y como SMTP de Supabase Auth en los dos entornos.
+- Resend con `mail.focaldrop.com` verificado en `us-east-1` (MX, SPF y DKIM en Cloudflare, en modo *DNS only*), y como SMTP de Supabase Auth en los dos entornos. La región no se puede cambiar sin volver a dar de alta el dominio ([Resend](https://resend.com/docs/dashboard/domains/introduction#subdomains)).
 - Respaldo nocturno de D4: `supabase db dump`, cifrado, a un bucket de respaldos en R2, desde GitHub Actions.
 - Sentry y UptimeRobot también en producción.
 - Environment `production` de GitHub con sus variables y secretos (D126). El deploy a producción va por tag `v*.*.*` o `workflow_dispatch`, con la aprobación de la otra persona, y migra antes de desplegar (D104, D106, Fase 2 §6).
@@ -321,7 +321,7 @@ Cada issue copia sus criterios de aquí. Todas cumplen además la §5 y la §6.
   - el login del owner real funciona en `<slug>.focaldrop.com`;
   - el deploy va por tag con la aprobación de la otra persona.
 - **H1-08:**
-  - Resend verifica `focaldrop.com`;
+  - Resend verifica `mail.focaldrop.com`;
   - Supabase Auth de staging y de producción usa ese SMTP;
   - la recuperación de contraseña funciona en staging con la plantilla de D133.
 - **H1-09:**
