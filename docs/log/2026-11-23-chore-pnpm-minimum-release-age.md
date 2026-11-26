@@ -29,6 +29,8 @@ PR: #105 · Autor: Rubén
 
   **La revisión de la CI:** 18 pruebas. Cada una de 13 mutaciones de sus reglas hace fallar al menos una: apagar la regla de edad, cambiar `<` por `<=`, exentar por nombre, aceptar patrones o rangos, revisar todo el lockfile en lugar de lo nuevo, entre otras. Contra el registro real, frente al commit anterior al #97, revisó 10 versiones nuevas en 2 s. Con una versión de 7 días metida en el lockfile, falla y dice desde qué fecha se permite.
 
+- 2026-11-26: **Revisión de Fabian al PR #105 (P2):** CodeQL marcó `name.replace('/', '%2f')` porque solo reemplaza la primera diagonal. Pasa a `replaceAll`; los nombres de npm solo llevan una, así que la URL no cambia y las pruebas tampoco.
+
 ## Tiempo
 
 - D131 automático (R): sin estimado; real ≈ 2 h asistidas (documentación, pruebas de pnpm, script y pruebas de mutación).

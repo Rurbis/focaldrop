@@ -184,7 +184,7 @@ export async function fetchPublishDates(entries, fetchImpl = fetch) {
  * @returns {Promise<Record<string, string>>}
  */
 async function fetchTimes(name, fetchImpl) {
-  const url = `${REGISTRY}/${name.replace('/', '%2f')}`;
+  const url = `${REGISTRY}/${name.replaceAll('/', '%2f')}`;
   const pause = (/** @type {number} */ attempt) =>
     new Promise((resolve) => setTimeout(resolve, attempt * 1000));
   for (let attempt = 1; ; attempt++) {
