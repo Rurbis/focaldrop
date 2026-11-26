@@ -1,36 +1,42 @@
-# Caché persistente de la web — propuesta separada para F6
+# F6 · S-4 y ADR-0010: hosting del front, Cloud Run y caché de agencias
 
-Issue: #21 · PR: #82 · Autor: Fabian
+Issues: #21 y #25 · PR: #82 · Autor: Fabian
 
 ## Decisiones
 
-- **D-nueva propuesta · Mantener Workers Free y evaluar R2/D1 para la caché pública** (precisa D83, D129 y D137) — [ADR-0010](../adr/0010-web-hosting.md). Mantener `no-store` en Next mientras se mide CPU en staging. Nest conserva su caché de cinco minutos. R2/D1 es el candidato a validar si las mediciones justifican almacenar el dato en Next.
-- La caché solo podrá guardar el contrato público de agencias activas, con la URL de Nest y el host normalizado en la clave. Nunca cookies, JWT, perfiles ni respuestas autenticadas. La etiqueta requerida es `agency-domains`.
-- `POST /api/cache/agency-domains` y su secreto quedan fuera. La invalidación se conectará a una mutación de dominio autorizada cuando exista; no se abre un endpoint de mantenimiento anticipado.
+- **D-nueva · Confirmar Cloudflare Workers para el front (Free en desarrollo/staging, gatillo a Paid al lanzar) y mantener `no-store` en Next por ahora** (precisa D1, D5, D83, D84, D129, D137 y D148) — [ADR-0010](../adr/0010-web-hosting.md). Las mediciones en staging (`focaldrop-web-staging`, versión `4dee763c`) confirmaron 0 errores `exceededCpu` en 136 peticiones, aunque el p50 del panel ya rebasa los 10 ms nominales (26 ms en `/admin`, 47 ms en `/admin/login`). Se conserva Workers Free ($0) mientras no haya cortes, con gatillo explícito a Workers Paid (US$5/mes) al lanzar con la agencia, al primer `exceededCpu` o si el Hito 1 lo exige. Next mantiene `no-store` (Nest conserva su caché de cinco minutos); si futuras mediciones justifican caché persistente, el candidato validado en local es R2/D1 con etiqueta `agency-domains`. El arranque en frío de Cloud Run (>10 s tras 1 h sin uso) se atiende sin costo en la issue #107 (Startup CPU Boost, monitor cada 5 min de UptimeRobot y ajuste del timeout de `apps/web/src/lib/api/fetch.ts`), descartando `min-instances = 1` por ahora.
 
 ## Historial
 
-- 2026-10-29: la revisión de Rubén al #78 separa el puente de F1 de la caché. La implementación anterior y su verificador están conservados en el [commit `30c6c99`](https://github.com/Rurbis/focaldrop/commit/30c6c9925c19978eb54e78fbe5a133de452a1703): son una referencia de trabajo, no una configuración para desplegar.
-- 2026-11-20: avance de S-4 con #91 (`d8f6e4a`) y #97 (`01c43ac`) combinados en un checkout de prueba. Linux, Node 24.22.1, pnpm 10.34.6, Next 16.4.5, OpenNext 1.20.12 y Wrangler 4.148.0.
+- 2026-10-29: la revisión de Rubén al #78 separa el puente de F1 de la caché. La implementación anterior y su verificador quedan en el [commit `30c6c99`](https://github.com/Rurbis/focaldrop/commit/30c6c9925c19978eb54e78fbe5a133de452a1703) como referencia de trabajo.
+- 2026-11-20: avance de S-4 con #91 (`d8f6e4a`) y #97 (`01c43ac`) en un checkout de prueba (Linux, Node 24.22.1, pnpm 10.34.6, Next 16.4.5, OpenNext 1.20.12, Wrangler 4.148.0).
 
 | Prueba           | Resultado                                                                                                                                                                                                                                                                                                                                       |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Build base y F1  | OpenNext y el verificador F1 pasaron. `wrangler deploy --dry-run` dio 9,730.51 KiB sin comprimir y **2,017.49 KiB** gzip.                                                                                                                                                                                                                       |
-| Cache Components | Al activarlo para probar `use cache`, Next falla al prerenderizar `/admin/login` por datos de la petición fuera de un límite de Suspense. Activarlo requiere migrar esa ruta y revisar las demás.                                                                                                                                               |
-| R2/D1 local      | Con Cache Components apagado, el prototipo de `unstable_cache` dio 10,161.56 KiB sin comprimir y **2,109.34 KiB** gzip. Wrangler local verificó reutilización entre peticiones, claves separadas por host, expiración corta, persistencia tras reiniciar workerd e invalidación inmediata con `revalidateTag('agency-domains', { expire: 0 })`. |
-| `proxy.ts` local | En el mismo Worker, `/admin` sin sesión redirige al login. Con una sesión sintética vencida, el proxy llama una vez al refresco, emite una cookie `HttpOnly` y el panel responde 200 sin habilitar caché compartida.                                                                                                                            |
-| Smoke de staging | `/`, `/admin/login` y `/api/public/tenant` respondieron 200 en el Worker que está desplegado.                                                                                                                                                                                                                                                   |
+| Cache Components | Al activarlo para probar `use cache`, Next falla al prerenderizar `/admin/login` por datos de la petición fuera de un límite de Suspense.                                                                                                                                                                                                         |
+| R2/D1 local      | Con Cache Components apagado, el prototipo con `unstable_cache` dio 10,161.56 KiB sin comprimir y **2,109.34 KiB** gzip. Wrangler local verificó reutilización entre peticiones, claves separadas por host, expiración corta, persistencia tras reiniciar workerd e invalidación inmediata con `revalidateTag('agency-domains', { expire: 0 })`. |
+| `proxy.ts` local | `/admin` sin sesión redirige al login; con una sesión sintética vencida, el proxy refresca una vez, emite cookie `HttpOnly` y el panel responde 200 sin habilitar caché compartida.                                                                                                                                                                |
 
-La prueba de caché usa marcadores sintéticos y R2/D1 locales. Para repetirla en Linux, compilar el panel, configurar los adaptadores `r2-incremental-cache` y `d1-next-tag-cache` con bindings locales, inicializar la tabla de revalidaciones del adaptador y ejecutar `wrangler dev --local --persist-to <directorio>`. En una ruta del experimento, guardar un marcador nuevo por argumento de host. Verificar que cada host repita su marcador, que ambos cambien después de invalidar la etiqueta y que el valor nuevo sobreviva al reinicio. La prueba solo corre en un checkout desechable.
+- 2026-11-23: **mediciones en staging medidas por Rubén sobre `focaldrop-web-staging` (`4dee763c`, #91 + #97):**
 
-La [documentación actual de Cloudflare](https://developers.cloudflare.com/workers/platform/limits/#worker-size) indica 64 MiB sin comprimir y ningún límite gzip. Los 3 MiB de gzip eran el umbral histórico de #21. Los 2,816 KiB siguen siendo el presupuesto interno del repo. El límite de CPU de Workers Free sigue en 10 ms por petición.
+| Ruta                                        | Muestras | p50   | p95    | Máximo |
+| ------------------------------------------- | -------- | ----- | ------ | ------ |
+| `/admin` autenticado                        | 30       | 26 ms | 66 ms  | 112 ms |
+| `/admin/login` (incluye el POST del login)  | 34       | 47 ms | 497 ms | 519 ms |
+| `/api/public/tenant`                        | 33       | 10 ms | 116 ms | 144 ms |
+| `/admin` con refresco de sesión e isolate   | 1        | 322 ms | —     | —      |
+
+  - **CPU del Worker:** 0 errores `exceededCpu` en las 136 invocaciones (`ok`); el refresco de sesión funcionó tras vencer el token. Los íconos estáticos que quemaban CPU (`/favicon.ico` 18–54 ms por 404 y `icon.svg` 57 ms) quedaron resueltos aparte en el PR #103 moviéndolos a `apps/web/public/`.
+  - **Arranque en frío de Cloud Run:** tras 1 h sin uso, Nest no contestó dentro del timeout de 10 s de `apps/web/src/lib/api/fetch.ts`: carga 1 tardó 11,075 ms (1,742 ms TTFB), carga 2 dio `504 API_TIMEOUT` a los 10,003 ms, y carga 3 respondió completa en 1,270 ms.
+- 2026-11-25: **cierre de S-4 (#21) y ADR-0010 (#25) en PR #82** con las mediciones de staging, decisión de Workers Free con gatillo explícito a Paid (US$5/mes) y seguimiento gratuito del arranque en frío en la issue #107.
 
 ## Tiempo
 
-Presupuesto del spike: 6 h. El tiempo total se registra al cerrar las mediciones.
+- #21 (S-4, F6) y #25 (ADR-0010): presupuesto del spike 6 h; análisis de caché, pruebas en Workers local, cierre de ADR-0010 y revisión en curso (≈ 2.5 h registradas entre sesiones asistidas; medición en staging aparte por Rubén).
 
 ## Pendientes
 
-1. **Medir CPU en staging.** Con #97 integrado, tomar muestras de `/admin/login`, `/api/public/tenant` y `/admin` autenticado, incluido un refresco de sesión. En [Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/) filtrar por ruta y registrar versión, número de muestras, p50, p95, máximo y errores por CPU. Usar el tiempo de CPU que reporta Cloudflare. Medir por separado la duración de la primera visita tras un arranque en frío de Cloud Run.
-2. **Validar caché remota si se necesita.** Usar un Worker de prueba con R2/D1 propios. Verificar dos hosts sintéticos, que invalidar uno de los entornos no afecte al otro, reutilización, expiración y recuperación tras una falla sin caché negativa. Comparar CPU y duración total con la configuración base. Medir antes de activar un binding en staging. Mantener la invalidación en la futura mutación autorizada de dominio y reflejar los cinco minutos de caché de Nest.
-3. **Cerrar S-4.** Registrar en #21 los números y capturas sin datos de agencia. Ratificar o actualizar ADR-0010 según el resultado. #21 y #25 siguen abiertos mientras falte evidencia del Worker publicado.
+- **Gatillo a Workers Paid (US$5/mes):** activar al lanzar con la primera agencia, ante el primer `exceededCpu` en staging o si el Hito 1 rebasa el margen práctico de Free (y reconsiderar Sentry en servidor de D145).
+- **Arranque en frío de Cloud Run:** darle seguimiento en la issue #107 (Startup CPU Boost, monitor UptimeRobot cada 5 min de D86 y ajuste de timeout/espera en `fetch.ts`).
+- **Validar R2/D1 remoto solo si se reactiva la caché en Next:** si futuras mediciones exigen caché persistente, probar en un Worker separado antes de agregar bindings a staging y conectar la invalidación a la mutación autorizada de dominios.
