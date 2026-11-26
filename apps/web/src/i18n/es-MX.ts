@@ -24,7 +24,7 @@ export const t = {
       role: 'Tu rol',
       roles: {
         owner: 'Titular',
-        staff: 'Equipo',
+        staff: 'Miembro del equipo',
       },
       next: {
         title: 'Lo que sigue',
