@@ -63,6 +63,23 @@ export default defineConfig([
     },
   },
   {
+    // Drizzle's dynamic WHERE replaces the tenant predicate; an upsert can
+    // update a conflicting row owned by another agency (F5, D59).
+    files: ['apps/api/src/**/*.ts'],
+    ignores: ['apps/api/src/db/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression:matches([property.name='$dynamic'], [property.name='onConflictDoUpdate'], [property.value='$dynamic'], [property.value='onConflictDoUpdate'])",
+          message:
+            'Use TenantRepository predicates; $dynamic and onConflictDoUpdate can bypass agency isolation.',
+        },
+      ],
+    },
+  },
+  {
     // Next.js and React hooks rules for the web app. eslint-config-next is not used:
     // it pulls eslint-plugin-react and eslint-plugin-import, which do not support
     // ESLint 10 yet (D115). jsx-a11y joins when it does.

@@ -116,7 +116,7 @@ describe('GET /admin/me (e2e)', () => {
         role: 'owner',
       });
 
-    expect(findMember).toHaveBeenCalledExactlyOnceWith(alpha.id, userId);
+    expect(findMember).toHaveBeenCalledExactlyOnceWith(userId);
   });
 
   it.each([
