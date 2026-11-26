@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { AdminMeSchema, type AdminMe } from '@focaldrop/shared';
+import { cache } from 'react';
 
 import { normalizeTenantHost } from '@/features/tenancy/host';
 import { ApiError, reportApiError } from '@/lib/api/errors';
@@ -15,8 +16,12 @@ export type AdminHome =
   | { status: 'no-access' }
   | { status: 'unavailable' };
 
-/** The signed-in member for the panel's home, read from Nest server to server (D62). */
-export async function getAdminHome(host: string | null): Promise<AdminHome> {
+/**
+ * The signed-in member for the panel, read from Nest server to server (D62).
+ * cache() makes the panel's frame and its page share one request per render:
+ * https://nextjs.org/docs/app/api-reference/file-conventions/layout#fetching-data
+ */
+export const getAdminHome = cache(async (host: string | null): Promise<AdminHome> => {
   try {
     const hostname = normalizeTenantHost(host);
     const token = await getApiAccessToken();
@@ -43,4 +48,4 @@ export async function getAdminHome(host: string | null): Promise<AdminHome> {
     reportApiError(error);
     return { status: 'unavailable' };
   }
-}
+});

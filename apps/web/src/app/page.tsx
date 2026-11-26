@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center gap-2 px-4">
       <h1 className="text-3xl font-semibold tracking-tight">{t.platform.name}</h1>
-      <p className="text-neutral-600">{t.home.description}</p>
+      <p className="text-ink-muted">{t.home.description}</p>
     </main>
   );
 }

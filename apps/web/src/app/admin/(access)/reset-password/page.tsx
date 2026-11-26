@@ -15,8 +15,8 @@ export default async function ResetPasswordPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">{t.auth.reset.title}</h1>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">{t.auth.reset.intro}</p>
+      <h1 className="text-page font-semibold tracking-tight text-balance">{t.auth.reset.title}</h1>
+      <p className="mt-1.5 mb-7 text-body text-ink-muted">{t.auth.reset.intro}</p>
       <NewPasswordForm />
     </>
   );
