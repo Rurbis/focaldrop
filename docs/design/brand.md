@@ -17,8 +17,11 @@ El símbolo son dos mitades separadas por una línea axial: a la izquierda **Foc
 | [`logo-light.svg`](../../apps/web/public/brand/logo-light.svg)           | Logo horizontal sobre fondos claros                                         |
 | [`logo-dark.svg`](../../apps/web/public/brand/logo-dark.svg)             | Logo horizontal sobre fondos oscuros                                        |
 | [`symbol-light.svg`](../../apps/web/public/brand/symbol-light.svg) / [`symbol-dark.svg`](../../apps/web/public/brand/symbol-dark.svg) | Solo el símbolo, donde no cabe el wordmark |
-| [`icon.svg`](../../apps/web/src/app/icon.svg)                             | Favicon: sin línea axial (desaparece a 16 px) y sigue el tema del navegador |
-| [`apple-icon.png`](../../apps/web/src/app/apple-icon.png)                 | Ícono de 180 px para iOS, sobre el fondo papel                              |
+| [`icon.svg`](../../apps/web/public/icon.svg)                              | Favicon: sin línea axial (desaparece a 16 px) y sigue el tema del navegador |
+| [`favicon.ico`](../../apps/web/public/favicon.ico)                        | El mismo símbolo en 16, 32 y 48 px, sobre un cuadro papel redondeado, para los navegadores que no leen SVG: un ICO no sigue el tema y la mitad en tinta se perdería en una pestaña oscura |
+| [`apple-touch-icon.png`](../../apps/web/public/apple-touch-icon.png)      | Ícono de 180 px para iOS, sobre el fondo papel                              |
+
+Los íconos van en `apps/web/public/` y se declaran en `src/app/layout.tsx`: así Cloudflare los sirve como archivos estáticos, sin ejecutar el Worker. Dentro de `src/app/` serían rutas de Next, y cada petición gastaría CPU del Worker.
 
 **Reglas:**
 
