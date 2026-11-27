@@ -33,7 +33,7 @@ Los íconos van en `apps/web/public/` y se declaran en `src/app/layout.tsx`: as�
 
 ## Color
 
-Un solo acento: va en la acción principal, los enlaces y el foco. Es el cian de los logos (2026-11-27): `#06B6D4` en oscuro, sobre un grafito frío con texto crema, y el mismo tono más oscuro en claro, `#066A7A`, porque `#06B6D4` queda en 3.5:1  ||||||sobre papel claro. El símbolo y el wordmark conservan sus colores hasta rediseñar el logo. Los colores de estado (error, aviso, éxito) se definen en A2 (#52) con el mismo cuidado de contraste.
+Un solo acento, el cian de los logos (`#06B6D4`, 2026-11-27), el mismo en claro y en oscuro. Va en la acción principal, el símbolo, la selección, el subrayado de los enlaces y el foco. Sobre papel claro queda en 2.1:1, así que ahí solo rellena y nunca es texto: los enlaces y las etiquetas usan la tinta del acento (tinta en claro, el cian en oscuro), el botón lleva texto oscuro encima y el foco enmarca el cian en oscuro. Los SVG del logo conservan sus colores hasta rediseñarlo. Los colores de estado (error, aviso, éxito) se definen en A2 (#52) con el mismo cuidado de contraste.
 
 | Rol                   | Claro     | Oscuro    | Uso                                       |
 | --------------------- | --------- | --------- | ----------------------------------------- |
@@ -43,9 +43,10 @@ Un solo acento: va en la acción principal, los enlaces y el foco. Es el cian de
 | Tinta                 | `#18181B` | `#EDE0D4` | Texto                                      |
 | Tinta secundaria      | `#5E5850` | `#B3A79B` | Notas y etiquetas                          |
 | Borde de campo        | `#8A847C` | `#7A736C` | Contorno de los campos de formulario       |
-| **Acento**            | `#066A7A` | `#06B6D4` | El cian de los logos                       |
-| Texto sobre el acento | `#FFFFFF` | `#121316` | Texto de los botones principales           |
-| Acento suave          | `#DFF2F5` | `#0B3640` | Fondo de estados ("Publicada")             |
+| **Acento**            | `#06B6D4` | `#06B6D4` | El cian de los logos: botón, símbolo, selección, subrayados y foco |
+| Texto sobre el acento | `#18181B` | `#121316` | Texto del botón principal y marco del foco |
+| Tinta del acento      | `#18181B` | `#06B6D4` | Enlaces y etiquetas en el color del acento |
+| Acento suave          | `#CDEFF5` | `#0B3640` | Fondo de estados ("Publicada")             |
 
 **Contraste verificado (WCAG 2.2):**
 
@@ -53,12 +54,13 @@ Un solo acento: va en la acción principal, los enlaces y el foco. Es el cian de
 | --------------------------------------- | ------ | ------ |
 | Tinta sobre papel                       | 15.0:1 | 14.3:1 |
 | Tinta secundaria sobre papel            | 6.0:1  | 7.9:1  |
-| Acento sobre papel (enlaces)            | 5.3:1  | 7.7:1  |
-| Texto sobre el botón de acento          | 6.3:1  | 7.7:1  |
-| Acento sobre acento suave               | 5.4:1  | 5.4:1  |
+| Tinta del acento sobre papel (enlaces)  | 15.0:1 | 7.7:1  |
+| Texto sobre el botón de acento          | 7.3:1  | 7.7:1  |
+| Tinta del acento sobre acento suave     | 14.6:1 | 5.4:1  |
+| Foco: marco contra el cian (mínimo 3:1) | 7.3:1  | 7.7:1  |
 | Borde de campo (mínimo 3:1)             | 3.5:1  | 3.7:1  |
 
-El azul anterior, `#2563EB`, era el azul por defecto de Tailwind (`blue-600`) y quedaba en 4.6:1 sobre el papel. La cianotipia (`#1F4E8C`, D135) se usó hasta el 2026-11-27.
+El azul anterior, `#2563EB`, era el azul por defecto de Tailwind (`blue-600`) y quedaba en 4.6:1 sobre el papel. La cianotipia (`#1F4E8C`, D135) se usó hasta el 2026-11-27. Ese día se probó en claro el mismo cian oscurecido (`#066A7A`), y se descartó porque se veía como otro azul.
 
 ## Tipografía
 
