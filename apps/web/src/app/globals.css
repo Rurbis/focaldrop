@@ -19,18 +19,18 @@
 
 :root,
 [data-theme] {
-  --fd-paper: light-dark(#f4f1eb, #141312);
-  --fd-surface: light-dark(#fbf9f5, #1c1a18);
-  --fd-raised: light-dark(#e9e3da, #2a2723);
-  --fd-ink: light-dark(#1b1a18, #ede6dc);
-  --fd-ink-muted: light-dark(#5e5850, #a79f94);
-  --fd-field: light-dark(#8c847a, #7a7268);
-  --fd-line: light-dark(#ddd6cb, #34302b);
-  --fd-accent: light-dark(#1f4e8c, #8db4e6);
-  --fd-on-accent: light-dark(#ffffff, #141312);
-  --fd-accent-soft: light-dark(#dce6f2, #22344a);
+  --fd-paper: light-dark(#f4f1eb, #121316);
+  --fd-surface: light-dark(#fbf9f5, #1a1c20);
+  --fd-raised: light-dark(#e9e3da, #25282d);
+  --fd-ink: light-dark(#1b1a18, #ede0d4);
+  --fd-ink-muted: light-dark(#5e5850, #b3a79b);
+  --fd-field: light-dark(#8c847a, #7a736c);
+  --fd-line: light-dark(#ddd6cb, #2e3137);
+  --fd-accent: light-dark(#1f4e8c, #06b6d4);
+  --fd-on-accent: light-dark(#ffffff, #121316);
+  --fd-accent-soft: light-dark(#dce6f2, #0b3640);
   --fd-danger: light-dark(#a8322d, #f2a39b);
-  --fd-on-danger: light-dark(#ffffff, #141312);
+  --fd-on-danger: light-dark(#ffffff, #121316);
   --fd-danger-soft: light-dark(#f6dcd8, #4a2420);
   --fd-success: light-dark(#2f6b43, #8fcba2);
   --fd-success-soft: light-dark(#dcebdf, #1e3a27);
@@ -39,11 +39,11 @@
   /* Mesa de luz (A3): the panel is a dim room and the work sits on one lit
      table. On the table, raised fills and rules use the room's tone, so
      secondary buttons and badges stay visible in dark mode. Only existing
-     palette values (D135). */
-  --fd-room: light-dark(#e9e3da, #141312);
-  --fd-table: light-dark(#fbf9f5, #2a2723);
-  --fd-table-raised: light-dark(#e9e3da, #141312);
-  --fd-table-line: light-dark(#ddd6cb, #141312);
+     palette values (D135; dark from the dark logo, D-nueva of 2026-11-27). */
+  --fd-room: light-dark(#e9e3da, #121316);
+  --fd-table: light-dark(#fbf9f5, #1f2227);
+  --fd-table-raised: light-dark(#e9e3da, #121316);
+  --fd-table-line: light-dark(#ddd6cb, #121316);
 }
 
 [data-theme='light'] {
