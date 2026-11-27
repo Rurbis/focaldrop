@@ -47,7 +47,7 @@ Los 13 ADRs que propuso la Parte C §7.
 | 0007 | Ciclo de vida de galerías con transiciones atómicas y purga con la BD al final        | D14, D16, D48, D61 | Pendiente, sin issue      |
 | 0008 | Outbox de avisos con canales como providers de Nest                                   | D47                | Pendiente, sin issue      |
 | 0009 | Tokens y PIN cifrados + hash; sesión de galería en cookie firmada                     | D42, D43           | Pendiente, sin issue      |
-| 0010 | [Hosting del front, API en Cloud Run y caché de agencias](0010-web-hosting.md)        | D1, D63, D83, D90, D129, D137 | Aceptada |
+| 0010 | [Hosting del front, API en Cloud Run y caché de agencias](0010-web-hosting.md)        | D1, D5, D63, D83, D84, D90, D124, D129, D137 | Aceptada |
 | 0011 | Tema por tokens y layout en código en la v1                                           | B4, D85            | Pendiente, sin issue      |
 | 0012 | [MVP por hitos usables](0012-mvp-by-usable-milestones.md)                             | D82, D91, D92      | Aceptada                  |
 | 0013 | [Observabilidad y protección de costos](0013-observability-and-cost-protection.md) | D86, D87           | Aceptada |
