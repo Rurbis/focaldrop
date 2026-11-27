@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 // https://nextjs.org/docs/app/api-reference/functions/generate-viewport#themecolor
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#e9e3da' },
-    { media: '(prefers-color-scheme: dark)', color: '#141312' },
+    { media: '(prefers-color-scheme: light)', color: '#e3dfd7' },
+    { media: '(prefers-color-scheme: dark)', color: '#121316' },
   ],
 };
 

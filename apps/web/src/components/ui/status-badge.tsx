@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 const tones = {
-  accent: 'bg-accent-soft text-accent',
+  accent: 'bg-accent-soft text-accent-ink',
   neutral: 'bg-raised text-ink',
   muted: 'bg-raised text-ink-muted',
   danger: 'bg-danger-soft text-danger',

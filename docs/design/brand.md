@@ -33,32 +33,34 @@ Los íconos van en `apps/web/public/` y se declaran en `src/app/layout.tsx`: as�
 
 ## Color
 
-Un solo acento: el azul va en la acción principal, los enlaces, el foco y la mitad "Drop" del símbolo. Los colores de estado (error, aviso, éxito) se definen en A2 (#52) con el mismo cuidado de contraste.
+Un solo acento, el cian de los logos (`#06B6D4`, 2026-11-27), el mismo en claro y en oscuro. Va en la acción principal, el símbolo, la selección, el subrayado de los enlaces y el foco. Sobre papel claro queda en 2.1:1, así que ahí solo rellena y nunca es texto: los enlaces y las etiquetas usan la tinta del acento (tinta en claro, el cian en oscuro), el botón lleva texto oscuro encima y el foco enmarca el cian en oscuro. Los SVG del logo conservan sus colores hasta rediseñarlo. Los colores de estado (error, aviso, éxito) se definen en A2 (#52) con el mismo cuidado de contraste.
 
 | Rol                   | Claro     | Oscuro    | Uso                                       |
 | --------------------- | --------- | --------- | ----------------------------------------- |
-| Papel (fondo)         | `#F4F1EB` | `#141312` | Fondo de la página                         |
-| Superficie            | `#FBF9F5` | `#1C1A18` | Tarjetas y paneles                         |
-| Elevado               | `#E9E3DA` | `#2A2723` | Barras, selección y botones secundarios    |
-| Tinta                 | `#1B1A18` | `#EDE6DC` | Texto                                      |
-| Tinta secundaria      | `#5E5850` | `#A79F94` | Notas y etiquetas                          |
-| Borde de campo        | `#8C847A` | `#7A7268` | Contorno de los campos de formulario       |
-| **Cianotipia**        | `#1F4E8C` | `#8DB4E6` | Acento                                     |
-| Texto sobre el acento | `#FFFFFF` | `#141312` | Texto de los botones principales           |
-| Cianotipia suave      | `#DCE6F2` | `#22344A` | Fondo de estados ("Publicada")             |
+| Papel (fondo)         | `#EFECE6` | `#121316` | Fondo de la página                         |
+| Superficie            | `#FBF9F5` | `#1A1C20` | Tarjetas y paneles                         |
+| Elevado               | `#E3DFD7` | `#25282D` | Barras, selección y botones secundarios    |
+| Tinta                 | `#18181B` | `#EDE0D4` | Texto                                      |
+| Tinta secundaria      | `#5E5850` | `#B3A79B` | Notas y etiquetas                          |
+| Borde de campo        | `#8A847C` | `#7A736C` | Contorno de los campos de formulario       |
+| **Acento**            | `#06B6D4` | `#06B6D4` | El cian de los logos: botón, símbolo, selección, subrayados y foco |
+| Texto sobre el acento | `#18181B` | `#121316` | Texto del botón principal y marco del foco |
+| Tinta del acento      | `#18181B` | `#06B6D4` | Enlaces y etiquetas en el color del acento |
+| Acento suave          | `#CDEFF5` | `#0B3640` | Fondo de estados ("Publicada")             |
 
 **Contraste verificado (WCAG 2.2):**
 
 | Par                                     | Claro  | Oscuro |
 | --------------------------------------- | ------ | ------ |
-| Tinta sobre papel                       | 15.4:1 | 15.0:1 |
-| Tinta secundaria sobre papel            | 6.2:1  | 7.1:1  |
-| Cianotipia sobre papel (enlaces)        | 7.4:1  | 8.7:1  |
-| Texto sobre botón cianotipia            | 8.3:1  | 8.7:1  |
-| Cianotipia sobre cianotipia suave       | 6.6:1  | 5.9:1  |
-| Borde de campo (mínimo 3:1)             | 3.3:1  | 3.7:1  |
+| Tinta sobre papel                       | 15.0:1 | 14.3:1 |
+| Tinta secundaria sobre papel            | 6.0:1  | 7.9:1  |
+| Tinta del acento sobre papel (enlaces)  | 15.0:1 | 7.7:1  |
+| Texto sobre el botón de acento          | 7.3:1  | 7.7:1  |
+| Tinta del acento sobre acento suave     | 14.6:1 | 5.4:1  |
+| Foco: marco contra el cian (mínimo 3:1) | 7.3:1  | 7.7:1  |
+| Borde de campo (mínimo 3:1)             | 3.5:1  | 3.7:1  |
 
-El azul anterior, `#2563EB`, era el azul por defecto de Tailwind (`blue-600`) y quedaba en 4.6:1 sobre el papel.
+El azul anterior, `#2563EB`, era el azul por defecto de Tailwind (`blue-600`) y quedaba en 4.6:1 sobre el papel. La cianotipia (`#1F4E8C`, D135) se usó hasta el 2026-11-27. Ese día se probó en claro el mismo cian oscurecido (`#066A7A`), y se descartó porque se veía como otro azul.
 
 ## Tipografía
 
