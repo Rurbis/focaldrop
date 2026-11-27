@@ -75,8 +75,10 @@ jobs:
         run: pnpm db:migrate
 
       # max-instances bounds the cost (D87); no min-instances, so it scales to
-      # zero. The service stays public from its one-time creation (README).
-      # DATABASE_URL comes from Secret Manager, read when each instance starts.
+      # zero (D124). Startup CPU Boost speeds up cold starts at negligible cost
+      # within the free tier (#107, ADR-0010). The service stays public from its
+      # one-time creation (README). DATABASE_URL comes from Secret Manager, read
+      # when each instance starts.
       - name: Deploy to Cloud Run
         id: deploy
         env:
@@ -89,6 +91,7 @@ jobs:
             --region="$REGION" \
             --service-account="$RUNTIME_SA" \
             --max-instances=2 \
+            --cpu-boost \
             --set-env-vars="NODE_ENV=production,APP_ENV=staging,DEFAULT_AGENCY_SLUG=${DEFAULT_AGENCY_SLUG},SENTRY_ENVIRONMENT=staging,SENTRY_DSN=${SENTRY_DSN},SUPABASE_JWKS_URL=${SUPABASE_JWKS_URL}" \
             --set-secrets="DATABASE_URL=${DB_SECRET}:latest" \
             --quiet

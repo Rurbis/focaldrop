@@ -4,12 +4,13 @@ import { loadEnv } from './config/load-env.js';
 import { initializeSentry } from './observability/sentry.js';
 
 try {
+  const startedAt = performance.now();
   const env = loadEnv();
   initializeSentry(env);
 
   // Load Nest only after Sentry has installed its ESM instrumentation hooks.
   const { bootstrap } = await import('./bootstrap.js');
-  await bootstrap(env);
+  await bootstrap(env, startedAt);
 } catch (error) {
   process.stderr.write(
     JSON.stringify({
