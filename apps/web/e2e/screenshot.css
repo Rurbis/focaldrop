@@ -1,0 +1,5 @@
+/* Applied only while Playwright takes a screenshot. The visual tests run
+   against `next dev`, whose indicator would otherwise appear in every image. */
+nextjs-portal {
+  display: none !important;
+}

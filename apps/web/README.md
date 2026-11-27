@@ -53,6 +53,20 @@ Password recovery emails arrive in Mailpit (<http://127.0.0.1:54324>). Local Sup
 | `pnpm --filter @focaldrop/web typecheck` | Generates the route types and runs `tsc --noEmit` |
 | `pnpm --filter @focaldrop/web test`      | Unit tests with Vitest                            |
 
+### Visual tests (issue #52)
+
+Playwright compares the public home, `/admin/login` and the design system showcase (`/admin/ui`) with reference images in `e2e/__screenshots__/`, at 1280 px and 390 px, in light and dark (the showcase already shows both modes, so it runs in light only). They run against `next dev`, because the showcase only exists in development, with a synthetic API that serves one fictitious agency on `alpha.localhost` (`e2e/synthetic-api.mjs`).
+
+Fonts render differently on Windows, macOS and Linux, so the references always come from the official Playwright image, `mcr.microsoft.com/playwright:v1.65.0-noble`. CI runs the same image. Locally, with Docker running:
+
+| Script                                            | What it does                                                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `pnpm --filter @focaldrop/web test:visual:docker` | Compares the pages in the Linux image; diffs land in `playwright-report/`                        |
+| `pnpm --filter @focaldrop/web test:visual:update` | Rewrites the references that changed. Do it only on purpose, and check every new image in the PR |
+| `pnpm --filter @focaldrop/web test:visual`        | Runs Playwright directly; used by CI inside the image                                            |
+
+The repo is copied into the container, so the Linux `node_modules` never touch the local ones. Node from `.nvmrc` (verified against the official checksums) and the pnpm store stay in the Docker volume `focaldrop-visual-cache`. The `visual` job in CI is not a required check yet: it becomes one with B2, the first gallery screens (design plan §7).
+
 The `cf:*` scripts build and deploy the Cloudflare Worker. They work only on Linux (CI, or WSL on Windows):
 
 | Script       | What it does                                                       |

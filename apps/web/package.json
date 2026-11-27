@@ -12,6 +12,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration:f1": "node scripts/verify-f1.mjs",
+    "test:visual": "playwright test",
+    "test:visual:docker": "node e2e/docker.mjs",
+    "test:visual:update": "node e2e/docker.mjs --update-snapshots",
     "cf:build": "opennextjs-cloudflare build",
     "cf:local": "opennextjs-cloudflare preview",
     "cf:size": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
@@ -33,6 +36,7 @@
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "1.20.12",
+    "@playwright/test": "1.65.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.0",
     "@types/react": "19.3.0",
