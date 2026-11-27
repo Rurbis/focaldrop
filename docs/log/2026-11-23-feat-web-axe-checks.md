@@ -26,6 +26,7 @@ PR: #106 · Autor: Rubén
     - el mismo problema solo en oscuro: fallan las 4 oscuras y el muestrario, que también pinta el modo oscuro;
     - un campo sin su etiqueta: fallan el login y el muestrario (`label`);
     - botones de 12 px: falla el muestrario (`target-size`).
+- 2026-11-27: **Rebasado sobre `main`** después de mezclar el #104. Con la regla del #105 ya en `pnpm-workspace.yaml`, pnpm volvió a elegir `axe-core` 4.14.0 por su cuenta, porque la 4.14.1 todavía no cumple 14 días.
 
 ## Tiempo
 
@@ -36,4 +37,3 @@ PR: #106 · Autor: Rubén
 - **Volverlo check requerido** con la B2, junto con las capturas.
 - **Lo manual sigue:** teclado, lector de pantalla y foco visible (plan §7). axe no los cubre.
 - **Más páginas:** el panel con sesión y la galería, cuando haya una sesión sintética para las pruebas.
-- **Al mezclar el #104:** cambiar la base de este PR a `main` y rebasarlo sobre el commit del #104.
