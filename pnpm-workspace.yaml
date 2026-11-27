@@ -6,6 +6,22 @@ packages:
 # so nobody works with a different version without noticing (D114).
 engineStrict: true
 
+# Only install versions published at least 14 days ago (20160 minutes),
+# transitive ones included (D131): a broken or hijacked release is usually
+# caught and pulled within days. pnpm applies it whenever it picks a version
+# (pnpm add, pnpm update, Dependabot), but it does not re-check the versions
+# pnpm-lock.yaml already has: CI checks the ones each PR adds
+# (scripts/check-release-age.mjs).
+# https://pnpm.io/10.x/settings#minimumreleaseage
+minimumReleaseAge: 20160
+# Security fixes do not wait. Exempt the exact patched version, never the whole
+# package, so later releases of it still wait (the CI check refuses anything
+# else). Note the advisory and the date the version turns 14 days old; from
+# that date the check asks to delete the entry:
+#   - next@16.4.6 # GHSA-xxxx-xxxx-xxxx · 14 days on 2026-12-01
+# https://pnpm.io/10.x/settings#minimumreleaseageexclude
+minimumReleaseAgeExclude: []
+
 # sharp (Next's optional native image optimizer) cannot run in a Worker, and
 # OpenNext's bundler follows pnpm's links straight to it (S-4, D129). Images
 # are never optimized by Next here: galleries bring their own previews.

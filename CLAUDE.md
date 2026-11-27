@@ -22,7 +22,7 @@ Plataforma multi-tenant para agencias de fotografía: sitio público por agencia
 - **Los archivos nunca pasan por Next ni por Nest:** el navegador habla directo con R2, y el ZIP lo arma el Worker.
 - **Transiciones de estado:** `UPDATE … WHERE status = … RETURNING` más su fila en el outbox, en la misma transacción.
 - **Cero costo** fuera de los planes gratuitos, salvo lo listado en la bitácora §4.1.
-- **Dependencias:** versiones exactas y con al menos 14 días publicadas, salvo arreglos de seguridad (D131).
+- **Dependencias:** versiones exactas y con al menos 14 días publicadas, salvo arreglos de seguridad (D131). pnpm lo aplica al elegir versiones, también las transitivas (`minimumReleaseAge`), y la CI revisa las que cada PR agrega al lockfile (`pnpm check:release-age`). Un arreglo de seguridad más nuevo entra excluyendo su versión exacta en `pnpm-workspace.yaml`, con el aviso y la fecha en que cumple 14 días.
 
 ## Estructura
 
@@ -31,6 +31,7 @@ Plataforma multi-tenant para agencias de fotografía: sitio público por agencia
 - `packages/shared`: esquemas Zod y tipos que comparten la web y la API.
 - `apps/zip-worker` (hito 1): Cloudflare Worker que arma el ZIP desde R2.
 - `infra/`: Supabase local (`infra/supabase`) y el arranque de Google Cloud (`infra/gcp`).
+- `scripts/`: revisiones de todo el repo que no son de ningún paquete, con pruebas de `node:test` (la edad de las dependencias, D131).
 
 ## Convenciones
 
@@ -57,6 +58,8 @@ Requisitos: Node **24.22.1** (`.nvmrc`; `pnpm install` rechaza versiones anterio
 | `pnpm lint` · `pnpm typecheck`                  | ESLint con tipos y TypeScript estricto                                          |
 | `pnpm test` · `pnpm build`                      | Pruebas (Vitest) y build de todo                                                |
 | `pnpm format:check` · `pnpm format`             | Prettier                                                                        |
+| `pnpm check:release-age`                        | Revisa que las versiones nuevas del lockfile tengan 14 días (D131)              |
+| `pnpm test:scripts`                             | Pruebas de `scripts/` (`node:test`); su lint es `pnpm exec eslint scripts`      |
 | `pnpm db:start` · `pnpm db:stop`                | Supabase local en Docker                                                        |
 | `pnpm db:generate`                              | Genera la migración a partir del esquema de Drizzle                             |
 | `pnpm db:migrate` · `pnpm db:seed`              | Aplica migraciones y crea la agencia de demo local                              |
@@ -64,7 +67,7 @@ Requisitos: Node **24.22.1** (`.nvmrc`; `pnpm install` rechaza versiones anterio
 | `pnpm db:provision`                             | Alta de una agencia en staging o producción; no es el seed local (ver abajo)    |
 | `pnpm --filter @focaldrop/api test:integration` | Pruebas con Postgres real; necesitan `TEST_DATABASE_URL` (en CI siempre corren) |
 
-- La CI requerida es `quality` (formato, lint, tipos) y `test` (pruebas y build); antes de abrir un PR, corre lo mismo en local.
+- La CI requerida es `quality` (formato, edad de las dependencias, lint, tipos y `scripts/`) y `test` (pruebas y build); antes de abrir un PR, corre lo mismo en local.
 - **El Worker del front solo se compila en Linux** (D129): los scripts `cf:*` de la web corren en CI, no en Windows.
 - Los deploys a staging son automáticos al mezclar en `main` (`deploy-web.yml`, `deploy-api.yml`).
 - El alta de agencias en staging corre desde el workflow manual `provision-staging.yml`, con los datos en secretos del Environment. El detalle está en el [README de la API](apps/api/README.md#staging-agency-issue-71).

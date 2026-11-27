@@ -24,6 +24,8 @@
     "db:reset": "pnpm --filter @focaldrop/shared build && pnpm --filter @focaldrop/api db:reset",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:release-age": "node scripts/check-release-age.mjs",
+    "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
     "prepare": "husky"
   },
   "devDependencies": {
