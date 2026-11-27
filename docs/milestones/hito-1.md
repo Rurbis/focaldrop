@@ -114,7 +114,8 @@ Lo que no dice cada fila lo dicen las decisiones citadas. Todas las capacidades 
 ### `client-view` · Galería del cliente (D43, D53, D134)
 
 - `/g/<token>`: cookie firmada con `Path=/g/<token>` (D43), y `noindex` y `Referrer-Policy: no-referrer` (D53).
-- Implementa el prototipo aprobado de `gallery-design`, con sus dos rondas sobre la preview.
+- Implementa el prototipo aprobado de `gallery-design`. Las dos rondas de la agencia sobre la preview, y sus ajustes, van aparte para no frenar el PR principal.
+- Un archivo sin vista previa (un MP4 del que el navegador no sacó un cuadro) muestra un ícono.
 - Página de link no válido y de galería vencida, con el botón de WhatsApp de la agencia.
 - Descarga individual del original con URL prefirmada de 5 minutos y `Content-Disposition: attachment`.
 - **Capturas de Playwright y axe obligatorias** desde aquí: el job `visual` se vuelve requerido (plan de diseño §7).
@@ -245,50 +246,55 @@ Las obligatorias de `CLAUDE.md` y de la Parte C §3.7, en su capacidad:
 
 ## 10. Plan
 
-Cada feature es vertical (D138): la hace una sola persona, con BD, API, web, pruebas y nota de bitácora, y dura máximo unos 2 días. Las horas incluyen el margen del 30 % de la Parte C y se corrigen con los tiempos reales. **R** marca las features que tocan cuentas, que las configura Rubén (D116). Las demás se toman de "Hito actual" en este orden.
+Cada feature es vertical (D138): la hace una sola persona, con BD, API, web, pruebas y nota de bitácora, y dura máximo unos 2 días. Las horas incluyen el margen del 30 % de la Parte C y se corrigen con los tiempos reales. **R** marca las features que tocan cuentas, que configura Rubén (D116). Las demás se toman de "Hito actual" en este orden.
+
+Ajustado el 2026-11-27 con la revisión de Fabian: H1-16 depende de las vistas previas, los spikes S-5 y S-1 van por separado, las rondas con la agencia tienen su propia feature y el menú del celular sale de Clientes.
 
 ### 10.1 Features de 1a · Entregar
 
-| #     | Feature                                             | Capacidad           | Horas | Depende de          | Quién        |
-| ----- | --------------------------------------------------- | ------------------- | ----- | ------------------- | ------------ |
-| H1-01 | R2 en staging y producción, y el módulo `storage`   | `prod-env`          | 4     | —                   | R            |
-| H1-02 | Clientes, y la navegación del panel en celular      | `clients`           | 7     | —                   |              |
-| H1-03 | Spike S-5 y S-1: subida y vistas previas            | `uploads`           | 8     | H1-01               |              |
-| H1-04 | Spike S-2: ZIP en el Worker                         | `zip`               | 8     | H1-01               |              |
-| H1-05 | Prototipo B2 y su ronda con la agencia              | `gallery-design`    | 8     | —                   | R (S8)       |
-| H1-06 | Galería en borrador y lista del panel               | `galleries`         | 8     | H1-02               |              |
-| H1-07 | Producción ligera en `<slug>.focaldrop.com`         | `prod-env`          | 8     | H1-01               | R            |
-| H1-08 | Resend y SMTP de Supabase Auth                      | `prod-env`          | 3     | —                   | R            |
-| H1-09 | Firmas de subida y verificación en Nest             | `uploads`           | 6     | H1-03, H1-06        |              |
-| H1-10 | Subida desde el panel                               | `uploads`           | 7     | H1-09               |              |
-| H1-11 | Vistas previas                                      | `previews`          | 6     | H1-10               |              |
-| H1-12 | Publicar y link                                     | `publish`           | 7     | H1-10               |              |
-| H1-13 | Worker de ZIP en staging y producción               | `zip`               | 8     | H1-04, H1-07        |              |
-| H1-14 | Acceso del cliente y su sesión                      | `client-view`       | 7     | H1-12               |              |
-| H1-15 | "Descargar todo": manifiesto y link firmado         | `zip`               | 5     | H1-12, H1-13        |              |
-| H1-16 | La galería del cliente (B2)                         | `client-view`       | 8     | H1-05, H1-11, H1-14 |              |
-| H1-17 | Descarga individual                                 | `client-view`       | 3     | H1-14               |              |
-| H1-18 | Avance X de Y y primera apertura                    | `download-progress` | 5     | H1-15, H1-17        |              |
-| H1-19 | Respaldo nocturno                                   | `prod-env`          | 4     | H1-07               | R (secretos) |
-|       | **Total 1a**                                        |                     | 120   |                     |              |
+| #     | Feature                                           | Capacidad           | Horas | Depende de   | Quién        |
+| ----- | ------------------------------------------------- | ------------------- | ----- | ------------ | ------------ |
+| H1-01 | R2 en staging y producción, y el módulo `storage` | `prod-env`          | 4     | —            | R            |
+| H1-02 | Clientes                                          | `clients`           | 5     | —            |              |
+| H1-03 | Navegación del panel en celular                   | `galleries`         | 2     | —            |              |
+| H1-04 | Spike S-5: subida                                 | `uploads`           | 4     | H1-01        |              |
+| H1-05 | Spike S-1: vistas previas                         | `previews`          | 4     | —            |              |
+| H1-06 | Spike S-2: ZIP en el Worker                       | `zip`               | 8     | H1-01        |              |
+| H1-07 | Prototipo B2 y su ronda con la agencia            | `gallery-design`    | 8     | —            | R (S8)       |
+| H1-08 | Galería en borrador y lista del panel             | `galleries`         | 8     | H1-02        |              |
+| H1-09 | Producción ligera en `<slug>.focaldrop.com`       | `prod-env`          | 8     | H1-01        | R            |
+| H1-10 | Resend y SMTP de Supabase Auth                    | `prod-env`          | 3     | —            | R            |
+| H1-11 | Firmas de subida y verificación en Nest           | `uploads`           | 6     | H1-04, H1-08 |              |
+| H1-12 | Subida desde el panel                             | `uploads`           | 7     | H1-11        |              |
+| H1-13 | Vistas previas                                    | `previews`          | 6     | H1-05, H1-12 |              |
+| H1-14 | Publicar y link                                   | `publish`           | 7     | H1-12        |              |
+| H1-15 | Worker de ZIP en staging y producción             | `zip`               | 8     | H1-06, H1-09 |              |
+| H1-16 | Acceso del cliente y su sesión                    | `client-view`       | 7     | H1-13, H1-14 |              |
+| H1-17 | "Descargar todo": manifiesto y link firmado       | `zip`               | 5     | H1-14, H1-15 |              |
+| H1-18 | La galería del cliente (B2)                       | `client-view`       | 8     | H1-07, H1-16 |              |
+| H1-19 | Ajustes de las rondas con la agencia              | `client-view`       | 3     | H1-18        |              |
+| H1-20 | Descarga individual                               | `client-view`       | 3     | H1-16        |              |
+| H1-21 | Avance X de Y y primera apertura                  | `download-progress` | 5     | H1-17, H1-20 |              |
+| H1-22 | Respaldo nocturno                                 | `prod-env`          | 4     | H1-09        | R (secretos) |
+|       | **Total 1a**                                      |                     | 123   |              |              |
 
 ### 10.2 Features de 1b · Automatizar
 
 | #     | Feature                                | Capacidad       | Horas | Depende de   | Quién |
 | ----- | -------------------------------------- | --------------- | ----- | ------------ | ----- |
-| H1-20 | Máquina de estados y cron `lifecycle`  | `lifecycle`     | 8     | H1-18        |       |
-| H1-21 | Outbox y envío con Resend              | `notifications` | 7     | H1-08, H1-20 |       |
-| H1-22 | Extender y restaurar                   | `lifecycle`     | 5     | H1-20        |       |
-| H1-23 | Papelera y purga                       | `trash`         | 7     | H1-20        |       |
-| H1-24 | Las 4 plantillas y el cron `reminders` | `notifications` | 6     | H1-21        |       |
-| H1-25 | Copia de la agencia                    | `agency-copy`   | 3     | H1-15        |       |
-| H1-26 | Visor con gestos                       | `client-view`   | 5     | H1-16        |       |
-| H1-27 | Cierre del hito 1                      | —               | 3     | todas        | Ambos |
+| H1-23 | Máquina de estados y cron `lifecycle`  | `lifecycle`     | 8     | H1-21        |       |
+| H1-24 | Outbox y envío con Resend              | `notifications` | 7     | H1-10, H1-23 |       |
+| H1-25 | Extender y restaurar                   | `lifecycle`     | 5     | H1-23        |       |
+| H1-26 | Papelera y purga                       | `trash`         | 7     | H1-23        |       |
+| H1-27 | Las 4 plantillas y el cron `reminders` | `notifications` | 6     | H1-24        |       |
+| H1-28 | Copia de la agencia                    | `agency-copy`   | 3     | H1-17        |       |
+| H1-29 | Visor con gestos                       | `client-view`   | 5     | H1-18        |       |
+| H1-30 | Cierre del hito 1                      | —               | 3     | todas        | Ambos |
 |       | **Total 1b**                           |                 | 44    |              |       |
 
-**Total: unas 164 h**, 11 semanas a 15 h. 1a toma unas 8 semanas y 1b, unas 3. La Parte C estimaba 140–170 h; este corte suma 19 h de producción ligera y respaldo que antes eran del hito 3.
+**Total: unas 167 h**, 11 semanas a 15 h. 1a toma unas 8 semanas y 1b, unas 3. La Parte C estimaba 140–170 h; este corte suma 19 h de producción ligera y respaldo que antes eran del hito 3.
 
-**En paralelo:** al arrancar, Rubén toma las cuentas (H1-01, H1-07, H1-08) y el prototipo (H1-05), y Fabian toma clientes y borradores (H1-02, H1-06). Los spikes (H1-03, H1-04) los toma quien quede libre en cuanto exista R2.
+**En paralelo:** al arrancar, Rubén toma las cuentas (H1-01, H1-09 y H1-10) y el prototipo (H1-07), y Fabian toma clientes y borradores (H1-02 y H1-08). El menú del celular (H1-03) y el spike S-1 (H1-05) no dependen de nada, y los toma quien quede libre. Los spikes S-5 y S-2 (H1-04 y H1-06) esperan a que exista R2.
 
 ### 10.3 Criterios por feature
 
@@ -298,110 +304,120 @@ Cada issue copia sus criterios de aquí. Todas cumplen además la §5 y la §6.
   - buckets de staging y de producción con el CORS de la §3, y la regla de 7 días comprobada;
   - credenciales en Secret Manager y en los Environments;
   - el módulo `storage` de Nest es el único con credenciales de R2, y firma un PUT que se verifica con `HeadObject` contra staging, a mano. En la CI va con un doble.
-- **H1-02:**
-  - el CRUD de clientes de la §3, con el e2e de 404 entre agencias;
-  - Clientes y Galerías en la navegación, con el menú del celular y sus capturas.
-- **H1-03:**
-  - los umbrales de S-1 y S-5 de la Parte A, medidos con las muestras de la agencia;
+- **H1-02:** el CRUD de clientes de la §3, con el e2e de 404 entre agencias.
+- **H1-03:** Clientes y Galerías en la navegación del panel, con el menú del celular (la hoja de Mesa de luz) y sus capturas.
+- **H1-04:**
+  - los umbrales de S-5 de la Parte A, medidos con las muestras de la agencia, en un máximo de 4 h;
   - una nota en `docs/log/` con lo medido y la configuración elegida de Uppy 6 (umbral de multipart y concurrencia);
   - el código del spike vive en su rama y no se mezcla (como S-4).
-- **H1-04:**
+- **H1-05:**
+  - los umbrales de S-1 de la Parte A, medidos en el navegador con los JPG reales de 24 MP, en un máximo de 4 h. No necesita R2;
+  - una nota en `docs/log/` con lo medido y cómo se libera la memoria entre imágenes;
+  - el código del spike vive en su rama y no se mezcla.
+- **H1-06:**
   - el ZIP abre en el Explorador de Windows, la Utilidad de Archivo de macOS, Archivos de iOS, Android y 7-Zip, también uno de más de 4 GiB con ZIP64;
   - CPU medida por cada 100 archivos;
   - decisión de Workers Free o Paid para el ZIP con el gatillo de la ADR-0010.
-- **H1-05:**
+- **H1-07:**
   - la agencia aprueba el prototipo por escrito, y cumple las reglas medibles del plan de diseño §3;
   - lo que entra al repo usa fotos de prueba, nunca las de la agencia.
-- **H1-06:**
+- **H1-08:**
   - migración de `galleries` y `gallery_recipients` con los permisos de `app_api` probados;
   - crear, editar y borrar borradores (el borrado va a `pending_deletion`, D48);
   - la lista por estado, con el e2e de 404.
-- **H1-07:** el "hecho cuando" de `prod-env`, salvo el respaldo:
+- **H1-09:** el "hecho cuando" de `prod-env`, salvo el respaldo:
   - `/health` de producción responde;
   - el login del owner real funciona en `<slug>.focaldrop.com`;
+  - la llave de cifrado de tokens (D42) vive en Secret Manager;
   - el deploy va por tag con la aprobación de la otra persona.
-- **H1-08:**
+- **H1-10:**
   - Resend verifica `mail.focaldrop.com`;
   - Supabase Auth de staging y de producción usa ese SMTP;
   - la recuperación de contraseña funciona en staging con la plantilla de D133.
-- **H1-09:**
+
+  Staging quedó hecho el 2026-11-26; falta producción, que espera a H1-09.
+- **H1-11:**
   - migración de `gallery_files`;
   - la firma para el `signRequest` de Uppy (PUT simple y multipart), limitada a la galería y a la agencia del contexto;
   - al completar, el CRC-32 se guarda y el tamaño se verifica con `HeadObject`. El e2e de 404 cubre los archivos.
-- **H1-10:**
+- **H1-12:**
   - Uppy en el panel con cola, progreso y reintentos, y el CRC-32 en un Web Worker;
   - reanudar tras volver a elegir los archivos no sube de nuevo lo terminado;
   - pasa el umbral de S-5 en staging, con más de 300 archivos.
-- **H1-11:**
-  - miniaturas de 400 px y vistas de 2048 px en WebP, sin EXIF (verificado);
+- **H1-13:**
+  - miniaturas de 400 px y vistas de 2048 px en WebP, sin EXIF (verificado), con lo que dejó S-1;
   - MP4 con un cuadro o un ícono;
   - "Regenerar vistas previas" funciona.
-- **H1-12:**
+- **H1-14:**
   - la política "entrega, no archivo" se acepta una vez;
-  - publicar exige todos los originales subidos y fija el vencimiento a 30 días. La fila del outbox la agrega H1-21;
-  - el link lleva un token de 128 bits con AES-256-GCM, su hash y su `key_version`. Regenerarlo invalida al anterior y a sus sesiones. Copiar y WhatsApp funcionan.
-- **H1-13:**
+  - publicar exige todos los originales subidos y fija el vencimiento a 30 días. La fila del outbox la agrega H1-24;
+  - el link lleva un token de 128 bits con AES-256-GCM, su hash y su `key_version` (la llave sale de una variable en local y staging, y de H1-09 en producción). Regenerarlo invalida al anterior y a sus sesiones. Copiar y WhatsApp funcionan.
+- **H1-15:**
   - `apps/zip-worker` con streaming, `Content-Length` exacto y ZIP64, que verifica la firma HMAC;
   - la prueba de bytes con `unzip -t`, incluido un caso de más de 4 GiB con datos sintéticos, corre en la CI;
   - deploy a staging y a producción.
-- **H1-14:**
+- **H1-16:**
   - `/g/[token]` se resuelve en Nest por el hash del token, y distingue vigente, vencida y no válido;
   - cookie firmada con `Path=/g/<token>`, `noindex` y `no-referrer`;
-  - listado paginado con URLs de las vistas previas, y un token de otra agencia responde como no válido.
-- **H1-15:**
+  - listado paginado con las URLs de las vistas previas, y un ícono para los archivos que no tienen. Un token de otra agencia responde como no válido.
+- **H1-17:**
   - migración de `downloads`;
   - el manifiesto y el link firmado de 24 h, revocable;
   - un ZIP de más de 2 GB abre en Windows y en iOS.
-- **H1-16:**
-  - implementa el prototipo aprobado: filas justificadas, portada, banner y visor básico, con las dos rondas sobre la preview;
+- **H1-18:**
+  - implementa el prototipo aprobado: filas justificadas, portada, banner y visor básico. Se mezcla con su revisión normal, sin esperar a la agencia;
   - capturas y axe de la galería;
   - el job `visual` pasa a ser requerido. Cambiar los checks requeridos le toca a Rubén (§6).
-- **H1-17:** URL prefirmada de 5 minutos con `attachment`, y el archivo baja con el mismo CRC-32 que el original, en un iPhone y en Windows.
-- **H1-18:**
+- **H1-19:**
+  - las dos rondas de la agencia sobre la preview, y sus ajustes en PRs chicos;
+  - las capturas se actualizan a propósito en cada ajuste;
+  - la agencia aprueba la galería antes de la primera entrega real.
+- **H1-20:** URL prefirmada de 5 minutos con `attachment`, y el archivo baja con el mismo CRC-32 que el original, en un iPhone y en Windows.
+- **H1-21:**
   - `download_items` idempotente, y el Worker reporta cada archivo con firma HMAC;
   - las descargas de la agencia no cuentan;
   - la lista muestra X de Y y la primera apertura.
-- **H1-19:**
+- **H1-22:**
   - el respaldo nocturno cifrado llega a su bucket de R2;
   - se descifra una vez a mano;
   - no deja datos en los logs.
-- **H1-20:**
+- **H1-23:**
   - el servicio de transiciones con `UPDATE … WHERE … RETURNING`;
   - el cron `lifecycle` cada hora, con el tiempo de espera y la idempotencia de la §3;
   - pruebas unitarias de todas las transiciones, y una galería con fechas cortas vence sola en staging.
-- **H1-21:**
+- **H1-24:**
   - migración de `notifications`, con dispatcher, reintentos, tope diario y Mailpit en local;
   - publicar y vencer escriben su fila del outbox en la misma transacción;
   - el cron `notifications` cada 10 minutos.
-- **H1-22:**
+- **H1-25:**
   - migración de `gallery_extensions`;
   - extender y restaurar desde los estados de D55, con su validación de fecha;
   - las dos acciones en el panel.
-- **H1-23:**
+- **H1-26:**
   - papelera de 7 días y "Eliminar ahora" solo para el owner;
   - la purga vacía el prefijo de R2, paginado, antes de borrar las filas;
   - una prueba comprueba que el prefijo quedó vacío.
-- **H1-24:** las 4 plantillas con React Email y el cron `reminders`; los 4 correos llegan en staging.
-- **H1-25:** la copia sale con el mismo ZIP, marcada como de la agencia, y no cambia el avance.
-- **H1-26:** deslizar, pellizcar y cerrar en el visor, con `prefers-reduced-motion` respetado y sus capturas.
-- **H1-27:**
+- **H1-27:** las 4 plantillas con React Email y el cron `reminders`; los 4 correos llegan en staging.
+- **H1-28:** la copia sale con el mismo ZIP, marcada como de la agencia, y no cambia el avance.
+- **H1-29:** deslizar, pellizcar y cerrar en el visor, con `prefers-reduced-motion` respetado y sus capturas.
+- **H1-30:**
   - los criterios de éxito de 1a y 1b, verificados en producción;
   - la retro con horas estimadas contra reales;
   - el tag y el tablero del hito 2.
 
 ### 10.4 Puntos de revisión
 
-1. **Después de los spikes** (H1-03 y H1-04): D-nuevas con lo medido, ajuste de horas y, si hace falta, cambio de plan antes de construir la subida y el ZIP.
+1. **Después de los spikes** (H1-04, H1-05 y H1-06): D-nuevas con lo medido, ajuste de horas y, si hace falta, cambio de plan antes de construir la subida y el ZIP.
 2. **Cierre de 1a:** la primera galería real en producción, el job `visual` requerido y una retro corta.
-3. **Cierre de 1b:** es el cierre del hito (H1-27).
+3. **Cierre de 1b:** es el cierre del hito (H1-30).
 
 ### 10.5 Riesgos
 
 | Riesgo | Impacto | Mitigación |
 | --- | --- | --- |
-| La subida falla con galerías grandes (CORS, reanudación, memoria del CRC-32) | Alto | S-5 primero y con las muestras reales. Si Uppy no alcanza, se replantea antes de H1-09 |
+| La subida falla con galerías grandes (CORS, reanudación, memoria del CRC-32) | Alto | S-5 primero y con las muestras reales. Si Uppy no alcanza, se replantea antes de H1-11 |
 | Las vistas previas de JPG de 24 MP agotan la memoria del navegador | Medio | S-1 mide con 300 archivos seguidos; se generan en serie y se libera cada imagen |
 | El ZIP rebasa la CPU de Workers Free | Medio | S-2 lo mide; el gatillo a Workers Paid (US$5) ya está en la ADR-0010 |
-| La aprobación del prototipo B2 se retrasa | Medio | Va en paralelo desde el inicio y solo bloquea H1-16 |
+| La aprobación de la agencia se retrasa | Medio | El prototipo va en paralelo desde el inicio, y las rondas sobre la preview tienen su feature (H1-19) para no frenar H1-18 |
 | El arranque en frío de la API corta el cron o la primera visita | Medio | #107, el tiempo de espera de `pg_net` y endpoints idempotentes |
 | La producción gasta más del presupuesto de US$5 de Google Cloud | Bajo | Sin instancias mínimas (D124, ADR-0010) y con el corte probado |

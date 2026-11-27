@@ -24,7 +24,15 @@ Las seis vienen de la entrevista del 2026-11-26 y están en [`milestones/hito-1.
     - Resend Free da 100 correos al día;
     - Uppy 6 firma todo con un solo `signRequest` y usa multipart solo arriba de 100 MiB, lo que cambia los nombres de endpoints de la Parte B §8;
     - `pg_net` está en beta y corta a los 2 s.
-  - **Plan:** 27 features, unas 164 h (1a: 120 h; 1b: 44 h), unas 11 semanas a 15 h. La Parte C estimaba 140–170 h sin la producción ligera ni el respaldo.
+  - **Plan:** 30 features, unas 167 h (1a: 123 h; 1b: 44 h), unas 11 semanas a 15 h. La Parte C estimaba 140–170 h sin la producción ligera ni el respaldo.
+
+- 2026-11-27: **Revisión de Fabian al plan.** Se aceptan sus 4 puntos:
+  - H1-16 (acceso del cliente) depende de las vistas previas, y un archivo sin vista previa muestra un ícono;
+  - los spikes S-5 y S-1 van por separado, con 4 h cada uno, y S-1 no necesita R2;
+  - las rondas de la agencia sobre la galería tienen su propia feature (H1-19), para que no frenen el PR de H1-18;
+  - el menú del celular sale de Clientes y es una feature de 2 h (H1-03).
+
+  Quedan 30 features y unas 167 h.
 
 ## Tiempo
 
@@ -32,6 +40,6 @@ Las seis vienen de la entrevista del 2026-11-26 y están en [`milestones/hito-1.
 
 ## Pendientes
 
-- **Al mezclar:** crear las 27 issues en el milestone "Hito 1 · Entrega de galerías", con sus criterios (§10.3) y horas, y ponerlas en "Hito actual" en el orden del plan, debajo de #21, #25 y #27.
-- **Cuentas que configura Rubén** (H1-01, H1-07 y H1-08): activar R2 con la tarjeta, el proyecto de Supabase de producción, el DNS comodín de `focaldrop.com` y Resend.
+- **Al mezclar:** crear las 30 issues en el milestone "Hito 1 · Entrega de galerías", con sus criterios (§10.3) y horas, y ponerlas en "Hito actual" en el orden del plan, debajo de #21, #25 y #27.
+- **Cuentas que configura Rubén** (H1-01, H1-09 y H1-10): activar R2 con la tarjeta, el proyecto de Supabase de producción, el DNS comodín de `focaldrop.com` y Resend.
 - **Agencia:** pedirle que su aviso de privacidad mencione que usa una plataforma para entregar las galerías (supuesto de la §9).
