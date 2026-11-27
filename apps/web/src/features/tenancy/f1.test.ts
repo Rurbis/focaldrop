@@ -265,7 +265,7 @@ describe('admin forwarding', () => {
   ])(
     'reports a mapped transport failure once at the HTTP boundary',
     async (failure, status, code, type) => {
-      fetchMock.mockRejectedValueOnce(failure);
+      fetchMock.mockRejectedValue(failure);
       const response = await GET(request(), { params: Promise.resolve({ path: ['admin', 'me'] }) });
       expect(response.status).toBe(status);
       expect(await response.json()).toEqual({ error: code });

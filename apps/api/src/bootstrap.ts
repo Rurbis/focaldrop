@@ -6,16 +6,25 @@ import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module.js';
 import type { Env } from './config/env.js';
 
-export async function bootstrap(env: Env): Promise<void> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: new ConsoleLogger({ json: true, colors: false, compact: true }),
-  });
+export async function bootstrap(env: Env, startedAt = performance.now()): Promise<void> {
+  const nestStartedAt = performance.now();
+  const logger = new ConsoleLogger({ json: true, colors: false, compact: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger });
 
   configureApp(app);
   app.enableShutdownHooks();
 
   try {
     await app.listen(env.PORT);
+    logger.log(
+      {
+        event: 'api.started',
+        port: env.PORT,
+        startupMs: Math.round(performance.now() - startedAt),
+        nestStartupMs: Math.round(performance.now() - nestStartedAt),
+      },
+      'Bootstrap',
+    );
   } catch (error) {
     await app.close();
     throw error;
