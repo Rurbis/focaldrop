@@ -21,6 +21,13 @@
     "lint": {
       "dependsOn": ["^build"]
     },
+    "@focaldrop/web#lint": {
+      "dependsOn": ["^build", "typecheck"]
+    },
+    "@focaldrop/web#typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/types/**", "next-env.d.ts"]
+    },
     "typecheck": {
       "dependsOn": ["^build"]
     },
